@@ -5,15 +5,15 @@ Vec2::Vec2(float _x, float _y) : x(_x), y(_y) {
 
 }
 
-float Vec2::Dot(Vec2 rhs) {
+float Vec2::Dot(Vec2 rhs) const {
     return x * rhs.x + y * rhs.y;
 }
 
-float Vec2::Magnitude() {
+float Vec2::Magnitude() const {
     return sqrt(x * x + y * y);
 }
 
-float Vec2::MagnitudeSqr() {
+float Vec2::MagnitudeSqr() const {
     return x * x + y * y;
 }
 
@@ -23,7 +23,7 @@ void Vec2::Normalize() {
     y /= mag;
 }
 
-Vec2 Vec2::UnitVec() {
+Vec2 Vec2::UnitVec() const {
     Vec2 cpy = *this;
     cpy.Normalize();
     return cpy;
@@ -37,21 +37,21 @@ Vec3::Vec3(Vec2 _xy, float _z) : x(_xy.x), y(_xy.y), z(_z) {
 
 }
 
-float Vec3::Dot(Vec3 rhs) {
+float Vec3::Dot(Vec3 rhs) const {
     return x * rhs.x + y * rhs.y + z * rhs.z;
 }
 
-Vec3 Vec3::Cross(Vec3 rhs) {
+Vec3 Vec3::Cross(Vec3 rhs) const {
     return Vec3(y * rhs.z - z * rhs.y,
                 - x * rhs.z + rhs.x * z,
                 + x * rhs.y - y * rhs.x);
 }
 
-float Vec3::Magnitude() {
+float Vec3::Magnitude() const {
     return sqrt(x * x + y * y + z * z);
 }
 
-float Vec3::MagnitudeSqr() {
+float Vec3::MagnitudeSqr() const {
     return x * x + y * y + z * z;
 }
 
@@ -62,7 +62,7 @@ void Vec3::Normalize() {
     z /= mag;
 }
 
-Vec3 Vec3::UnitVec() {
+Vec3 Vec3::UnitVec() const {
     Vec3 cpy = *this;
     cpy.Normalize();
     return cpy;

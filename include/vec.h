@@ -9,11 +9,11 @@ class Vec2 {
         float x;
         float y;
 
-        float Dot(Vec2 rhs);
-        float Magnitude();
-        float MagnitudeSqr();
+        float Dot(Vec2 rhs) const;
+        float Magnitude() const;
+        float MagnitudeSqr() const;
         void Normalize();
-        Vec2 UnitVec();
+        Vec2 UnitVec() const;
         Vec2 friend operator /(const float& lhs, const Vec2& rhs);
         Vec2 friend operator *(const float& lhs, const Vec2& rhs);
         Vec2 friend operator /(const Vec2& lhs, const float& rhs);
@@ -32,12 +32,12 @@ class Vec3 {
         float y;
         float z;
 
-        float Dot(Vec3 rhs);
-        Vec3 Cross(Vec3 rhs);
-        float Magnitude();
-        float MagnitudeSqr();
+        float Dot(Vec3 rhs) const;
+        Vec3 Cross(Vec3 rhs) const;
+        float Magnitude() const;
+        float MagnitudeSqr() const;
         void Normalize();
-        Vec3 UnitVec();
+        Vec3 UnitVec() const;
         Vec3 friend operator /(const float &lhs, const Vec3 &rhs);
         Vec3 friend operator *(const float& lhs, const Vec3& rhs);
         Vec3 friend operator /(const Vec3& lhs, const float& rhs);

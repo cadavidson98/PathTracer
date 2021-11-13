@@ -1,4 +1,5 @@
 #include "file_loader.h"
+#include "dielectric_material.h"
 #include "camera.h"
 #include "config.h"
 #include "matrix.h"
@@ -72,7 +73,7 @@ void FileLoader::ProcessCamera(const aiScene* ai_scene, aiNode* cam_node, aiCame
         camera->mHorizontalFOV);
 }
 
-void FileLoader::ProcessMesh(const aiScene* scene, aiNode* mesh_node, aiMesh* mesh, shared_ptr<Scene> my_scene) {
+void FileLoader::ProcessMesh(const aiScene* scene, aiNode* mesh_node, aiMesh* mesh, std::shared_ptr<Scene> my_scene) {
     aiNode* cur_node = mesh_node;
     aiMatrix4x4 trans;
     // Get the specific transformation for this mesh
@@ -87,7 +88,7 @@ void FileLoader::ProcessMesh(const aiScene* scene, aiNode* mesh_node, aiMesh* me
                          trans.a4, trans.b4, trans.c4, trans.d4 };
     Matrix4x4 transform(mat_data);
     std::string mat_name(scene->mMaterials[mesh->mMaterialIndex]->GetName().C_Str());
-    Material* mesh_mat = my_scene->mats_[mat_name];
+    Material *mesh_mat = my_scene->mats_[mat_name];
     std::vector<Triangle*> mesh_tris;
     for (unsigned int k = 0; k < mesh->mNumFaces; ++k) {
         Triangle* scene_tri = new Triangle;
@@ -275,20 +276,21 @@ void FileLoader::ProcessLight(const aiScene* ai_scene, aiNode* light_node, aiLig
 void FileLoader::ProcessMaterial(const aiScene* scene, aiMaterial* mat, shared_ptr<Scene> my_scene) {
     // start with ambient
     aiColor3D a, d, s, t, e;
-    float ior;
+    float ior(0), rough(0);
     mat->Get(AI_MATKEY_COLOR_AMBIENT, a);
     mat->Get(AI_MATKEY_COLOR_DIFFUSE, d);
     mat->Get(AI_MATKEY_COLOR_SPECULAR, s);
     mat->Get(AI_MATKEY_COLOR_TRANSPARENT, t);
     mat->Get(AI_MATKEY_COLOR_EMISSIVE, e);
     mat->Get(AI_MATKEY_REFRACTI, ior);
+    mat->Get(AI_MATKEY_ROUGHNESS_FACTOR, rough);
     int num_base = mat->GetTextureCount(aiTextureType_BASE_COLOR);
     int num_diffuse = mat->GetTextureCount(aiTextureType_DIFFUSE);
     int num_normal = mat->GetTextureCount(aiTextureType_NORMALS);
     int num_metal = mat->GetTextureCount(aiTextureType_METALNESS);
-    Material* new_material = new Material;
+    Material *new_material = new DielectricMaterial(Color(d.r, d.g, d.b), Color(s.r, s.g, s.b), Color(e.r, e.g, e.b), ior, rough);
 
-    for (int i = 0; i < num_diffuse; ++i) {
+    /*for (int i = 0; i < num_diffuse; ++i) {
         int idx = ProcessTexture(mat, i, aiTextureType_DIFFUSE, my_scene);
         new_material->diffuse_map_ = my_scene->textures_[idx];
     }
@@ -296,15 +298,7 @@ void FileLoader::ProcessMaterial(const aiScene* scene, aiMaterial* mat, shared_p
     for (int i = 0; i < num_normal; ++i) {
         int idx = ProcessTexture(mat, i, aiTextureType_NORMALS, my_scene);
         new_material->normal_map_ = my_scene->textures_[idx];
-    }
-    
-    new_material->a_ = Color(a.r, a.g, a.b);
-    new_material->d_ = Color(d.r, d.g, d.b);
-    new_material->s_ = Color(s.r, s.g, s.b);
-    new_material->e_ = Color(e.r, e.g, e.b);
-    new_material->t_ = Color(t.r, t.g, t.b);
-    new_material->ior_ = ior;
-
+    }*/
     std::string name(mat->GetName().C_Str());
     my_scene->mats_.emplace(name, new_material);
 }

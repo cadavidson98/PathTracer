@@ -29,6 +29,10 @@ inline Color operator*(Color lhs, float rhs) {
     return Color(lhs.r * rhs, lhs.g * rhs, lhs.b * rhs);
 }
 
+inline Color operator/(Color lhs, float rhs) {
+    return Color(lhs.r / rhs, lhs.g / rhs, lhs.b / rhs);
+}
+
 inline bool operator==(const Color &lhs, const Color &rhs) {
     return (lhs.r == rhs.r) && (lhs.g == rhs.g) && (lhs.b == rhs.b);
 }

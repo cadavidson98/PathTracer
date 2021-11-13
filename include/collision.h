@@ -45,9 +45,9 @@ inline bool TriangleIntersect(Ray ray, Triangle tri, HitInfo &hit) {
     	
     	hit.norm = a * (tri.n1_) + b * (tri.n2_) + c * (tri.n3_);
     	
-    	hit.m = *tri.mat_;
+    	hit.m = tri.mat_;
     	hit.uv = a * (tri.uv1_) + b * (tri.uv2_) + c * (tri.uv3_);
-    	if (tri.mat_->normal_map_ != NULL) {
+    	/*if (tri.mat_->normal_map_ != NULL) {
     	    // change of basis
     	    Vec3 tangent = a * (tri.t1_) + b * (tri.t2_) + c * (tri.t3_);
     	    Vec3 bitangent = a * (tri.bt1_) + b * (tri.bt2_) + c * (tri.bt3_);
@@ -58,7 +58,7 @@ inline bool TriangleIntersect(Ray ray, Triangle tri, HitInfo &hit) {
     	    Vec4 tex_norm = 2.0f * Vec4(norm_clr.r, norm_clr.g, norm_clr.b) - 1.0f;
     	    tex_norm = TBN * tex_norm;
     	    hit.norm = Vec3(tex_norm.x, tex_norm.y, tex_norm.z);
-    	}
+    	}*/
 		hit.norm.Normalize();
     	hit.norm = (hit.norm.Dot(ray.dir) > 0.0) ? -1*hit.norm: hit.norm;
 		return true;

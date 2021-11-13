@@ -5,7 +5,9 @@
 #include "camera.h"
 #include "structs.h"
 #include "image_lib.h"
+#include "Material.h"
 
+#include <memory>
 #include <vector>
 #include <unordered_map>
 
