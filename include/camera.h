@@ -24,7 +24,7 @@ class Camera {
         Vec3 cam_up_;
         Vec3 cam_fwd_;
         Vec3 cam_right_;
-        float half_angle_fov_;
-        float near_plane_;  // distance from eye to the image plane
+        float half_angle_fov_;  //! half the horizontal field of view (FOV)
+        float near_plane_;  //! distance from eye to the image plane
 };
 #endif  // CAMERA_H

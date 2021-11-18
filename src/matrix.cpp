@@ -37,7 +37,7 @@ Matrix4x4::Matrix4x4(Vec4 col1, Vec4 col2, Vec4 col3, Vec4 col4) {
 
 #define VALUE(x, y) 4 * x - 4 + y - 1
 
-Matrix4x4 Matrix4x4::Invert(Matrix4x4 mat) {
+Matrix4x4 Matrix4x4::Invert(const Matrix4x4 &mat) {
     // Calculate the inverse using the Adjugate matrix.
     // We use a bottom up approach and first calculate all the 2x2 matrix
     // determinates to reduce computation cost.
@@ -134,7 +134,7 @@ Matrix4x4 Matrix4x4::Invert(Matrix4x4 mat) {
     return inverse;
 }
 
-Vec4 operator *(const Matrix4x4& lhs, Vec4 const& rhs) {
+Vec4 operator *(const Matrix4x4 &lhs, const Vec4 &rhs) {
     Vec4 result;
     result.x = lhs.data_[0] * rhs.x + lhs.data_[4] * rhs.y + lhs.data_[8] * rhs.z + lhs.data_[12] * rhs.w;
     result.y = lhs.data_[1] * rhs.x + lhs.data_[5] * rhs.y + lhs.data_[9] * rhs.z + lhs.data_[13] * rhs.w;

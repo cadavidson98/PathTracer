@@ -7,7 +7,7 @@ set(SHADER_DIR ${CMAKE_CURRENT_SOURCE_DIR}/data)
 set(SOURCEFILES src/main.cpp 
                 src/bvh.cpp 
                 src/camera.cpp 
-                src/dielectric_material.cpp
+                src/isotropic_material.cpp
                 src/file_loader.cpp 
                 src/matrix.cpp 
                 src/ray_tracer.cpp 
@@ -20,7 +20,7 @@ set(HEADERFILES include/config.h
                 include/bvh.h 
                 include/camera.h
                 include/collision.h
-                include/dielectric_material.h
+                include/isotropic_material.h
                 include/file_loader.h
                 include/material.h
                 include/matrix.h

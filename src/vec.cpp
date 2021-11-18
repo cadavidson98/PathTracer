@@ -5,7 +5,7 @@ Vec2::Vec2(float _x, float _y) : x(_x), y(_y) {
 
 }
 
-float Vec2::Dot(Vec2 rhs) const {
+float Vec2::Dot(const Vec2 &rhs) const {
     return x * rhs.x + y * rhs.y;
 }
 
@@ -33,15 +33,15 @@ Vec3::Vec3(float _x, float _y, float _z) : x(_x), y(_y), z(_z) {
 
 }
 
-Vec3::Vec3(Vec2 _xy, float _z) : x(_xy.x), y(_xy.y), z(_z) {
+Vec3::Vec3(const Vec2 &_xy, float _z) : x(_xy.x), y(_xy.y), z(_z) {
 
 }
 
-float Vec3::Dot(Vec3 rhs) const {
+float Vec3::Dot(const Vec3 &rhs) const {
     return x * rhs.x + y * rhs.y + z * rhs.z;
 }
 
-Vec3 Vec3::Cross(Vec3 rhs) const {
+Vec3 Vec3::Cross(const Vec3 &rhs) const {
     return Vec3(y * rhs.z - z * rhs.y,
                 - x * rhs.z + rhs.x * z,
                 + x * rhs.y - y * rhs.x);
@@ -72,20 +72,16 @@ Vec4::Vec4(float _x, float _y, float _z, float _w) : x(_x), y(_y), z(_z), w(_w) 
 
 }
 
-Vec4::Vec4(Vec2 _xy, float _z, float _w) : x(_xy.x), y(_xy.y), z(_z), w(_w) {
+Vec4::Vec4(const Vec2 &_xy, float _z, float _w) : x(_xy.x), y(_xy.y), z(_z), w(_w) {
 
 }
 
-Vec4::Vec4(Vec3 _xyz, float _w) : x(_xyz.x), y(_xyz.y), z(_xyz.z), w(_w) {
+Vec4::Vec4(const Vec3 &_xyz, float _w) : x(_xyz.x), y(_xyz.y), z(_xyz.z), w(_w) {
 
 }
 
-float Vec4::Dot(Vec4 _rhs) {
+float Vec4::Dot(const Vec4 &_rhs) {
     return x * _rhs.x + y * _rhs.y + z * _rhs.z + w * _rhs.w;
-}
-
-Vec4 Vec4::Cross(Vec4 _rhs) {
-    return Vec4();
 }
 
 float Vec4::Magnitude() {

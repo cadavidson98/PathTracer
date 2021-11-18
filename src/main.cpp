@@ -18,9 +18,9 @@
 
 int main(int argc, char* argv[]) {
     std::string file_name = std::string(DEBUG_DIR) + '/'; 
-    std::string out_name("dragon.png");
+    std::string out_name("elma.png");
     if(argc < 2) {
-        file_name += "dragon.dae";
+        file_name += "Elma_side.dae";
     }
     else if (argc < 3) {
         file_name += argv[1];
@@ -32,7 +32,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Opening " << file_name << std::endl;
     FileLoader file_loader;
     std::shared_ptr<Scene> my_scene = file_loader.LoadScene(file_name);
-    int width(1280), height(720);
+    int width(400), height(300);
     int half_width = width >> 1;
     int half_height = height >> 1;
     my_scene->camera_.SetDist(half_width / std::tanf(.5f * my_scene->camera_.GetHalfFOV()));
@@ -40,14 +40,15 @@ int main(int argc, char* argv[]) {
     auto s_time = std::chrono::high_resolution_clock::now();
     shared_ptr<Image> img = ray_tracer.Render(width, height);
     auto e_time = std::chrono::high_resolution_clock::now();
-    auto min = std::chrono::duration_cast<std::chrono::minutes>(e_time - s_time);
-    auto sec = std::chrono::duration_cast<std::chrono::seconds>(e_time - s_time);
     auto mil = std::chrono::duration_cast<std::chrono::milliseconds>(e_time - s_time);
+    int minutes = mil.count() / 60000;
+    int seconds = mil.count() / 1000 - 60 * minutes;
+    int milliseconds = mil.count() - 60000 * minutes - 1000 * seconds; 
     std::cout << "\nRender Time\n" 
-              << "\tMinutes: " << min.count() << "\n"
-              << "\tSeconds: " << sec.count() - 60 * min.count() << "\n"
-              << "\tMilliseconds: " << mil.count() - (60000 * min.count()) - (1000 * sec.count())  <<"\n";
-    std::cout << "Change output file name (y/n)?" << std::endl;
+              << "\tMinutes: " << minutes << "\n"
+              << "\tSeconds: " << seconds << "\n"
+              << "\tMilliseconds: " << milliseconds <<"\n";
+    std::cout << "Change output file name (y/n)? ";
     char new_file_name;
     std::cin >> new_file_name;
     if (new_file_name == 'y' || new_file_name == 'Y') {

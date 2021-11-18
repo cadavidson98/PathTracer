@@ -6,6 +6,6 @@ RandomSampler2D::RandomSampler2D() {
 }
 
 void RandomSampler2D::NextSample(float &x, float &y) {
-    x = rand() / static_cast<float>(RAND_MAX);
-    y = rand() / static_cast<float>(RAND_MAX);
+    x = rand() * one_over_max_;
+    y = rand() * one_over_max_;
 }

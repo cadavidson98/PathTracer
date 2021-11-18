@@ -6,7 +6,7 @@
 #include "matrix.h"
 #include <algorithm>
 
-inline bool TriangleIntersect(Ray ray, Triangle tri, HitInfo &hit) {
+inline bool TriangleIntersect(const Ray &ray, const Triangle &tri, HitInfo &hit) {
   	// Get the plane normal
   	Vec3 vec1 = tri.p3_ - tri.p1_;
   	Vec3 vec2 = tri.p2_ - tri.p1_;
@@ -47,7 +47,7 @@ inline bool TriangleIntersect(Ray ray, Triangle tri, HitInfo &hit) {
     	
     	hit.m = tri.mat_;
     	hit.uv = a * (tri.uv1_) + b * (tri.uv2_) + c * (tri.uv3_);
-    	/*if (tri.mat_->normal_map_ != NULL) {
+    	if (tri.mat_->normal_map_ != nullptr) {
     	    // change of basis
     	    Vec3 tangent = a * (tri.t1_) + b * (tri.t2_) + c * (tri.t3_);
     	    Vec3 bitangent = a * (tri.bt1_) + b * (tri.bt2_) + c * (tri.bt3_);
@@ -58,7 +58,7 @@ inline bool TriangleIntersect(Ray ray, Triangle tri, HitInfo &hit) {
     	    Vec4 tex_norm = 2.0f * Vec4(norm_clr.r, norm_clr.g, norm_clr.b) - 1.0f;
     	    tex_norm = TBN * tex_norm;
     	    hit.norm = Vec3(tex_norm.x, tex_norm.y, tex_norm.z);
-    	}*/
+    	}
 		hit.norm.Normalize();
     	hit.norm = (hit.norm.Dot(ray.dir) > 0.0) ? -1*hit.norm: hit.norm;
 		return true;
@@ -66,22 +66,22 @@ inline bool TriangleIntersect(Ray ray, Triangle tri, HitInfo &hit) {
   	return false;
 }
 
-inline bool AABBIntersect(Ray ray, Dimension AABB, float &i_t) {
+inline bool AABBIntersect(const Ray &ray, const Dimension &AABB, float &i_t) {
     float tmin(-INFINITY), tmax(INFINITY);
-    float tx1 = (AABB.min_x - ray.pos.x) * ray.inverse.x;
-    float tx2 = (AABB.max_x - ray.pos.x) * ray.inverse.x;
+    float tx1 = (AABB.min_x_ - ray.pos.x) * ray.inverse.x;
+    float tx2 = (AABB.max_x_ - ray.pos.x) * ray.inverse.x;
     
 	tmin = std::max(tmin, std::min(tx1, tx2));
     tmax = std::min(tmax, std::max(tx1, tx2));
     
-	float ty1 = (AABB.min_y - ray.pos.y) * ray.inverse.y;
-    float ty2 = (AABB.max_y - ray.pos.y) * ray.inverse.y;
+	float ty1 = (AABB.min_y_ - ray.pos.y) * ray.inverse.y;
+    float ty2 = (AABB.max_y_ - ray.pos.y) * ray.inverse.y;
     
 	tmin = std::max(tmin, std::min(ty1, ty2));
     tmax = std::min(tmax, std::max(ty1, ty2));
     
-	float tz1 = (AABB.min_z - ray.pos.z) * ray.inverse.z;
-    float tz2 = (AABB.max_z - ray.pos.z) * ray.inverse.z;
+	float tz1 = (AABB.min_z_ - ray.pos.z) * ray.inverse.z;
+    float tz2 = (AABB.max_z_ - ray.pos.z) * ray.inverse.z;
     
 	tmin = std::max(tmin, std::min(tz1, tz2));
     tmax = std::min(tmax, std::max(tz1, tz2));

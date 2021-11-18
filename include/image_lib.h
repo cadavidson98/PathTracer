@@ -15,7 +15,12 @@ struct Color {
 
   Color(float r, float g, float b) : r(r), g(g), b(b) {}
   Color() : r(0), g(0), b(0) {}
+  float Luminance();
 };
+
+inline float Color::Luminance() {
+  return r * .3f + g * .59f + b * .11f;
+}
 
 inline Color operator+(Color lhs, Color rhs) {
     return Color(lhs.r+rhs.r, lhs.g+rhs.g, lhs.b+rhs.b);

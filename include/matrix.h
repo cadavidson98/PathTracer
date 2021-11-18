@@ -14,7 +14,7 @@ class Matrix4x4 {
     Matrix4x4(Vec4 col1, Vec4 col2, Vec4 col3, Vec4 col4);
     Matrix4x4(vector<float> data);
 
-    static Matrix4x4 Invert(Matrix4x4 mat);
+    static Matrix4x4 Invert(const Matrix4x4 &mat);
     friend Vec4 operator *(const Matrix4x4 &lhs, const Vec4 &rhs);
     
     private:

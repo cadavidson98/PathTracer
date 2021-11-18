@@ -25,7 +25,7 @@ shared_ptr<Image> RayTracer::Render(int width, int height) {
     float half_width = width * .5f;
     float half_height = height * .5f;
     int size = width * height;
-    int num_samples = 1024;
+    int num_samples = 200;
     float frac = 1.f / static_cast<float>(num_samples);
     
 
@@ -46,9 +46,9 @@ shared_ptr<Image> RayTracer::Render(int width, int height) {
                     float v = half_height - (y + jitter_y);
 
                     Ray ray = image_scene_->camera_.CreateRay(u, v);
-                    tot_clr = tot_clr + PathTrace(ray, 0, generator, path_throughput) * frac;
+                    tot_clr = tot_clr + PathTrace(ray, 0, generator, path_throughput);
                 }
-            //tot_clr = tot_clr / static_cast<float>(num_samples);
+            tot_clr = tot_clr / static_cast<float>(num_samples);
             result->setPixel(x, y, tot_clr);
             }
         }
@@ -67,18 +67,20 @@ Color RayTracer::PathTrace(Ray ray, int depth, shared_ptr<Sampler2D> generator, 
     bool hit = SceneIntersect(ray, hit_info);
     if(hit) {
         // there was a collision
-        // right now we only check for diffuse in path tracing, but we 
-        // may add specular, reflection, and transmissive later
+        // right now we only check for diffuse and specular, still need to
+        // add transmissive and the frenel effect
         float pdf;
         Vec3 to_eye = image_scene_->camera_.Eye() - hit_info.pos;
         to_eye.Normalize();
-        Color BSDF_clr = hit_info.m->Sample(ray.dir, outgoing, pdf, to_eye, hit_info, generator);
-        Vec3 wiggle = hit_info.pos + .001f * outgoing;
-        Ray recurse_ray(wiggle, outgoing);
-        float cos_theta = hit_info.norm.Dot(outgoing);
-        //cos_theta = 1.0f;
-        Color indirect = PathTrace(recurse_ray, depth + 1, generator, path_throughput);
-        tot_color = (hit_info.m->Emittance()) + BSDF_clr * indirect * cos_theta / pdf;
+        Color BRDF_clr = hit_info.m->Sample(ray.dir, outgoing, pdf, to_eye, hit_info, generator);
+        // Check if the BDSF scatters light
+        if(BRDF_clr.r + BRDF_clr.g + BRDF_clr.b > .0001f) {
+            Vec3 wiggle = hit_info.pos + .001f * outgoing;
+            Ray recurse_ray(wiggle, outgoing);
+            float cos_theta = hit_info.norm.Dot(outgoing);
+            Color indirect = PathTrace(recurse_ray, depth + 1, generator, path_throughput);
+            tot_color = (hit_info.m->Emittance()) + BRDF_clr * indirect * cos_theta / pdf;
+        }
         //path_throughput = path_throughput * (std::abs(outgoing.Dot(hit_info.norm)) / pdf);
     }
     return tot_color;

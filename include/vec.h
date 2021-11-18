@@ -9,7 +9,7 @@ class Vec2 {
         float x;
         float y;
 
-        float Dot(Vec2 rhs) const;
+        float Dot(const Vec2 &rhs) const;
         float Magnitude() const;
         float MagnitudeSqr() const;
         void Normalize();
@@ -26,14 +26,14 @@ class Vec3 {
     public:
 
         Vec3(float x = 0, float y = 0, float z = 0);
-        Vec3(Vec2 xy, float z);
+        Vec3(const Vec2 &xy, float z);
         
         float x;
         float y;
         float z;
 
-        float Dot(Vec3 rhs) const;
-        Vec3 Cross(Vec3 rhs) const;
+        float Dot(const Vec3 &rhs) const;
+        Vec3 Cross(const Vec3 &rhs) const;
         float Magnitude() const;
         float MagnitudeSqr() const;
         void Normalize();
@@ -54,18 +54,17 @@ class Vec4 {
         float w;
 
         Vec4(float x = 0, float y = 0, float z = 0, float w = 0);
-        Vec4(Vec2 xy, float z, float w);
-        Vec4(Vec3 xyz, float w);
+        Vec4(const Vec2 &xy, float z, float w);
+        Vec4(const Vec3 &xyz, float w);
         
-        float Dot(Vec4 rhs);
-        Vec4 Cross(Vec4 rhs);
+        float Dot(const Vec4 &rhs);
         float Magnitude();
         float MagnitudeSqr();
         void Normalize();
 
-        Vec4 friend operator /(float &lhs, Vec4 &rhs);
-        Vec4 friend operator -(Vec4 &lhs, Vec4 &rhs);
-        Vec4 friend operator +(Vec4 &lhs, Vec4 &rhs);
+        Vec4 friend operator /(const float &lhs, const Vec4 &rhs);
+        Vec4 friend operator -(const Vec4 &lhs, const Vec4 &rhs);
+        Vec4 friend operator +(const Vec4 &lhs, const Vec4 &rhs);
 };
 
 inline Vec2 operator -(const Vec2& lhs, const Vec2& rhs) {

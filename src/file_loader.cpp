@@ -1,5 +1,5 @@
 #include "file_loader.h"
-#include "dielectric_material.h"
+#include "isotropic_material.h"
 #include "camera.h"
 #include "config.h"
 #include "matrix.h"
@@ -89,27 +89,27 @@ void FileLoader::ProcessMesh(const aiScene* scene, aiNode* mesh_node, aiMesh* me
     Matrix4x4 transform(mat_data);
     std::string mat_name(scene->mMaterials[mesh->mMaterialIndex]->GetName().C_Str());
     Material *mesh_mat = my_scene->mats_[mat_name];
-    std::vector<Triangle*> mesh_tris;
+    std::vector<Triangle> mesh_tris;
     for (unsigned int k = 0; k < mesh->mNumFaces; ++k) {
-        Triangle* scene_tri = new Triangle;
-        scene_tri->mat_ = mesh_mat;
+        Triangle scene_tri;
+        scene_tri.mat_ = mesh_mat;
         aiFace tri = mesh->mFaces[k];
 
         unsigned int index = tri.mIndices[0];
         aiVector3D vert = mesh->mVertices[index];
         vert = trans * vert;
-        scene_tri->p1_ = Vec3(vert.x, vert.y, vert.z);
+        scene_tri.p1_ = Vec3(vert.x, vert.y, vert.z);
         
         index = tri.mIndices[1];
         vert = mesh->mVertices[index];
         vert = trans * vert;
         
-        scene_tri->p2_ = Vec3(vert.x, vert.y, vert.z);
+        scene_tri.p2_ = Vec3(vert.x, vert.y, vert.z);
         
         index = tri.mIndices[2];
         vert = mesh->mVertices[index];
         vert = trans * vert;
-        scene_tri->p3_ = Vec3(vert.x, vert.y, vert.z);
+        scene_tri.p3_ = Vec3(vert.x, vert.y, vert.z);
 
         mesh_tris.push_back(scene_tri);
     }
@@ -122,30 +122,30 @@ void FileLoader::ProcessMesh(const aiScene* scene, aiNode* mesh_node, aiMesh* me
             aiVector3D ai_norm = mesh->mNormals[index];
             Vec4 norm(ai_norm.x, ai_norm.y, ai_norm.z, 0);
             norm = transform * norm;
-            mesh_tris[k]->n1_ = Vec3(norm.x, norm.y, norm.z);
+            mesh_tris[k].n1_ = Vec3(norm.x, norm.y, norm.z);
 
             index = tri.mIndices[1];
             ai_norm = mesh->mNormals[index];
             norm = Vec4(ai_norm.x, ai_norm.y, ai_norm.z, 0);
             norm = transform * norm;
-            mesh_tris[k]->n2_ = Vec3(norm.x, norm.y, norm.z);
+            mesh_tris[k].n2_ = Vec3(norm.x, norm.y, norm.z);
 
 
             index = tri.mIndices[2];
             ai_norm = mesh->mNormals[index];
             norm = Vec4(ai_norm.x, ai_norm.y, ai_norm.z, 0);
             norm = transform * norm;
-            mesh_tris[k]->n3_ = Vec3(norm.x, norm.y, norm.z);
+            mesh_tris[k].n3_ = Vec3(norm.x, norm.y, norm.z);
         }
     }
     else {
         for (unsigned int k = 0; k < mesh->mNumFaces; ++k) {
-            Vec3 norm = (mesh_tris[k]->p2_ - mesh_tris[k]->p1_).Cross(mesh_tris[k]->p3_ - mesh_tris[k]->p1_);
+            Vec3 norm = (mesh_tris[k].p2_ - mesh_tris[k].p1_).Cross(mesh_tris[k].p3_ - mesh_tris[k].p1_);
             norm.Normalize();
 
-            mesh_tris[k]->n1_ =
-            mesh_tris[k]->n2_ =
-            mesh_tris[k]->n3_ = norm;
+            mesh_tris[k].n1_ =
+            mesh_tris[k].n2_ =
+            mesh_tris[k].n3_ = norm;
         }
     }
     if (mesh->HasTangentsAndBitangents()) {
@@ -156,35 +156,35 @@ void FileLoader::ProcessMesh(const aiScene* scene, aiNode* mesh_node, aiMesh* me
             aiVector3D ai_tan = mesh->mTangents[index];
             Vec4 tan(ai_tan.x, ai_tan.y, ai_tan.z, 0);
             tan = transform * tan;
-            mesh_tris[k]->t1_ = Vec3(tan.x, tan.y, tan.z);
+            mesh_tris[k].t1_ = Vec3(tan.x, tan.y, tan.z);
 
             aiVector3D ai_bitan = mesh->mBitangents[index];
             Vec4 bitan(ai_bitan.x, ai_bitan.y, ai_bitan.z, 0);
             bitan = transform * bitan;
-            mesh_tris[k]->bt1_ = Vec3(bitan.x, bitan.y, bitan.z);
+            mesh_tris[k].bt1_ = Vec3(bitan.x, bitan.y, bitan.z);
 
             index = tri.mIndices[1];
             ai_tan = mesh->mTangents[index];
             tan = Vec4(ai_tan.x, ai_tan.y, ai_tan.z, 0);
             tan = transform * tan;
-            mesh_tris[k]->t2_ = Vec3(tan.x, tan.y, tan.z);
+            mesh_tris[k].t2_ = Vec3(tan.x, tan.y, tan.z);
 
             ai_bitan = mesh->mBitangents[index];
             bitan = Vec4(ai_bitan.x, ai_bitan.y, ai_bitan.z, 0);
             bitan = transform * bitan;
-            mesh_tris[k]->bt2_ = Vec3(bitan.x, bitan.y, bitan.z);
+            mesh_tris[k].bt2_ = Vec3(bitan.x, bitan.y, bitan.z);
 
 
             index = tri.mIndices[2];
             ai_tan = mesh->mTangents[index];
             tan = Vec4(ai_tan.x, ai_tan.y, ai_tan.z, 0);
             tan = transform * tan;
-            mesh_tris[k]->t3_ = Vec3(tan.x, tan.y, tan.z);
+            mesh_tris[k].t3_ = Vec3(tan.x, tan.y, tan.z);
 
             ai_bitan = mesh->mBitangents[index];
             bitan = Vec4(ai_bitan.x, ai_bitan.y, ai_bitan.z, 0);
             bitan = transform * bitan;
-            mesh_tris[k]->bt3_ = Vec3(bitan.x, bitan.y, bitan.z);
+            mesh_tris[k].bt3_ = Vec3(bitan.x, bitan.y, bitan.z);
         }
     }
     unsigned int val = *mesh->mNumUVComponents;
@@ -194,18 +194,20 @@ void FileLoader::ProcessMesh(const aiScene* scene, aiNode* mesh_node, aiMesh* me
 
             unsigned int index = tri.mIndices[0];
             aiVector3D ai_uv = mesh->mTextureCoords[0][index];
-            mesh_tris[k]->uv1_ = Vec2(ai_uv.x, ai_uv.y);
+            mesh_tris[k].uv1_ = Vec2(ai_uv.x, ai_uv.y);
 
             index = tri.mIndices[1];
             ai_uv = mesh->mTextureCoords[0][index];
-            mesh_tris[k]->uv2_ = Vec2(ai_uv.x, ai_uv.y);
+            mesh_tris[k].uv2_ = Vec2(ai_uv.x, ai_uv.y);
 
             index = tri.mIndices[2];
             ai_uv = mesh->mTextureCoords[0][index];
-            mesh_tris[k]->uv3_ = Vec2(ai_uv.x, ai_uv.y);
+            mesh_tris[k].uv3_ = Vec2(ai_uv.x, ai_uv.y);
         }
     }
-    my_scene->tris_.insert(my_scene->tris_.end(), mesh_tris.begin(), mesh_tris.end());
+    // Since our scene are static for now, we push all meshed into 1 giant bvh, to get the best possible splits.
+    // but once we move to real time adjustments using scene graphs, we are going to place each mesh in its own bvh here.
+    my_scene->tris_.insert(my_scene->tris_.end(), std::make_move_iterator(mesh_tris.begin()), std::make_move_iterator(mesh_tris.end()));
 }
 
 void FileLoader::ProcessNode(const aiScene* scene, aiNode* node, shared_ptr<Scene> my_scene) {
@@ -239,7 +241,7 @@ void FileLoader::ProcessLight(const aiScene* ai_scene, aiNode* light_node, aiLig
     case aiLightSourceType::aiLightSource_POINT: {
         Vec4 light_pos = transform * Vec4(light->mPosition.x, light->mPosition.y, light->mPosition.z, 1);
 
-        new_light->type_ = LightType::point;
+        new_light->type_ = LightType::POINT;
         new_light->pos_ = Vec3(light_pos.x, light_pos.y, light_pos.z);
         new_light->clr_ = Color(light->mColorDiffuse.r, light->mColorDiffuse.g, light->mColorDiffuse.b);
         new_light->attenu_const_ = light->mAttenuationConstant;
@@ -250,7 +252,7 @@ void FileLoader::ProcessLight(const aiScene* ai_scene, aiNode* light_node, aiLig
     case aiLightSourceType::aiLightSource_DIRECTIONAL: {
         Vec4 light_dir = transform * Vec4(light->mDirection.x, light->mDirection.y, light->mDirection.z, 0);
 
-        new_light->type_ = LightType::dir;
+        new_light->type_ = LightType::DIR;
         new_light->dir1_ = Vec3(light_dir.x, light_dir.y, light_dir.z);
         new_light->clr_ = Color(light->mColorDiffuse.r, light->mColorDiffuse.g, light->mColorDiffuse.b);
         break;
@@ -258,7 +260,7 @@ void FileLoader::ProcessLight(const aiScene* ai_scene, aiNode* light_node, aiLig
     case aiLightSourceType::aiLightSource_SPOT: {
         Vec4 light_pos = transform * Vec4(light->mPosition.x, light->mPosition.y, light->mPosition.z, 1);
 
-        new_light->type_ = LightType::spot;
+        new_light->type_ = LightType::SPOT;
         new_light->pos_ = Vec3(light_pos.x, light_pos.y, light_pos.z);
         new_light->angle1_ = light->mAngleInnerCone;
         new_light->angle2_ = light->mAngleOuterCone;
@@ -276,7 +278,7 @@ void FileLoader::ProcessLight(const aiScene* ai_scene, aiNode* light_node, aiLig
 void FileLoader::ProcessMaterial(const aiScene* scene, aiMaterial* mat, shared_ptr<Scene> my_scene) {
     // start with ambient
     aiColor3D a, d, s, t, e;
-    float ior(0), rough(0);
+    float ior(0), rough(-1);
     mat->Get(AI_MATKEY_COLOR_AMBIENT, a);
     mat->Get(AI_MATKEY_COLOR_DIFFUSE, d);
     mat->Get(AI_MATKEY_COLOR_SPECULAR, s);
@@ -284,21 +286,24 @@ void FileLoader::ProcessMaterial(const aiScene* scene, aiMaterial* mat, shared_p
     mat->Get(AI_MATKEY_COLOR_EMISSIVE, e);
     mat->Get(AI_MATKEY_REFRACTI, ior);
     mat->Get(AI_MATKEY_ROUGHNESS_FACTOR, rough);
+    if(rough == -1) {
+        mat->Get(AI_MATKEY_SHININESS, rough);
+    }
     int num_base = mat->GetTextureCount(aiTextureType_BASE_COLOR);
     int num_diffuse = mat->GetTextureCount(aiTextureType_DIFFUSE);
     int num_normal = mat->GetTextureCount(aiTextureType_NORMALS);
     int num_metal = mat->GetTextureCount(aiTextureType_METALNESS);
-    Material *new_material = new DielectricMaterial(Color(d.r, d.g, d.b), Color(s.r, s.g, s.b), Color(e.r, e.g, e.b), ior, rough);
+    Material *new_material = new IsotropicMaterial(Color(d.r, d.g, d.b), Color(s.r, s.g, s.b), Color(e.r, e.g, e.b), ior, rough);
 
-    /*for (int i = 0; i < num_diffuse; ++i) {
+    for (int i = 0; i < num_diffuse; ++i) {
         int idx = ProcessTexture(mat, i, aiTextureType_DIFFUSE, my_scene);
-        new_material->diffuse_map_ = my_scene->textures_[idx];
+        new_material->albedo_map_ = my_scene->textures_[idx];
     }
 
     for (int i = 0; i < num_normal; ++i) {
         int idx = ProcessTexture(mat, i, aiTextureType_NORMALS, my_scene);
         new_material->normal_map_ = my_scene->textures_[idx];
-    }*/
+    }
     std::string name(mat->GetName().C_Str());
     my_scene->mats_.emplace(name, new_material);
 }
