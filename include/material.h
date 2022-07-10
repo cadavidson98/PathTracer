@@ -17,14 +17,7 @@ struct HitInfo;
  */ 
 class Material {
 public:    
-    // Ray Tracing Functions
-    /**
-     * \brief Illuminate this material using the Phong-Blinn illumination model
-     * \param incoming Vector which defines the indicent light ray
-     * \param outgoing Vector which defines the outgoing directions towards the camera eye
-     * \param normal Vector which defines the surface normal at the collision point
-     */ 
-    virtual Color ApplyPhongBlinn(const Vec3 &incoming, const Vec3 &outgoing, const Vec3 &normal) = 0;
+    
     // Path Tracing Functions
     /**
      * \brief Calculates the material color at the given location and viewing angle
@@ -32,8 +25,8 @@ public:
      * \param collision Data struct containing the collision location and normal
      * \param outgoing Vector which defines the outgoing direction towards the camera eye
      */ 
-    virtual Color Sample(const Vec3 &incoming, Vec3 &outgoing, float &pdf, const Vec3 &toEye, const HitInfo &collisionPt, std::shared_ptr<Sampler2D> BRDF_sampler) = 0;
-
+    virtual Color Sample(const Vec3 &incoming, Vec3 &outgoing, float &pdf, const HitInfo &collisionPt, std::shared_ptr<Sampler2D> BRDF_sampler) = 0;
+    virtual Color BRDF(const Vec3 &incoming, const Vec3 &outgoing, const HitInfo &collision_pt) = 0;
     virtual Color Emittance() = 0;
 
     Image *albedo_map_ = nullptr;  //! Optional albedo texture for better rendering

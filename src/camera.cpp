@@ -1,5 +1,7 @@
 #include "camera.h"
 
+#include <cmath>
+
 Camera::Camera(Vec3 eye, Vec3 forward, Vec3 up, float half_angle_fov, camera_type proj_type) {
     cam_eye_ = eye;
 
@@ -13,11 +15,12 @@ Camera::Camera(Vec3 eye, Vec3 forward, Vec3 up, float half_angle_fov, camera_typ
     cam_up_.Normalize();
 
     cam_type_ = proj_type;
-    near_plane_ = .1;
+    near_plane_ = .1f;
 }
 
-void Camera::SetDist(float dist) {
-    near_plane_ = dist;
+void Camera::ConfigureExtent(float img_w, float img_h) {
+    // calculate the distance from the eye to the image plane
+    near_plane_ = (img_h * .5f) / std::tanf(half_angle_fov_);
 }
 
 Ray Camera::CreateRay(float img_x, float img_y) {

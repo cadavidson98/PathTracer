@@ -5,10 +5,11 @@ message("Current dir: ${CMAKE_CURRENT_SOURCE_DIR}")
 
 set(SHADER_DIR ${CMAKE_CURRENT_SOURCE_DIR}/data)
 set(SOURCEFILES src/main.cpp 
+                src/assimp_file_loader.cpp                 
                 src/bvh.cpp 
                 src/camera.cpp 
-                src/isotropic_material.cpp
-                src/file_loader.cpp 
+                src/cook_torrence.cpp
+                src/legacy_file_loader.cpp
                 src/matrix.cpp 
                 src/ray_tracer.cpp 
                 src/scene.cpp
@@ -17,11 +18,14 @@ set(SOURCEFILES src/main.cpp
                 src/vec.cpp)
 
 set(HEADERFILES include/config.h
+                include/assimp_file_loader.h
                 include/bvh.h 
                 include/camera.h
                 include/collision.h
-                include/isotropic_material.h
+                include/cook_torrence.h
                 include/file_loader.h
+                include/legacy_file_loader.h
+                include/math_helpers.h
                 include/material.h
                 include/matrix.h
                 include/ray.h 

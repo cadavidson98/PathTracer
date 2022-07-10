@@ -1,5 +1,5 @@
-#include "file_loader.h"
-#include "isotropic_material.h"
+#include "assimp_file_loader.h"
+#include "cook_torrence.h"
 #include "camera.h"
 #include "config.h"
 #include "matrix.h"
@@ -12,11 +12,11 @@
 #include <fstream>
 #include <iostream>
 
-FileLoader::FileLoader() {
+AssimpFileLoader::AssimpFileLoader() {
     scene_data_ = std::shared_ptr<Scene>(new Scene);
 }
 
-shared_ptr<Scene> FileLoader::LoadScene(string file_name) {
+shared_ptr<Scene> AssimpFileLoader::LoadScene(string file_name) {
     Assimp::Importer importer;
     const aiScene* scene = importer.ReadFile(file_name,
         aiProcess_CalcTangentSpace |
@@ -47,7 +47,7 @@ shared_ptr<Scene> FileLoader::LoadScene(string file_name) {
     return scene_data_;
 }
 
-void FileLoader::ProcessCamera(const aiScene* ai_scene, aiNode* cam_node, aiCamera* camera, shared_ptr<Scene> my_scene) {
+void AssimpFileLoader::ProcessCamera(const aiScene* ai_scene, aiNode* cam_node, aiCamera* camera, shared_ptr<Scene> my_scene) {
     aiMatrix4x4 cam_mat, local_transform;
     camera->GetCameraMatrix(local_transform);
     aiNode* cur_node = cam_node;
@@ -70,10 +70,10 @@ void FileLoader::ProcessCamera(const aiScene* ai_scene, aiNode* cam_node, aiCame
     my_scene->camera_ = Camera(Vec3(eye.x, eye.y, eye.z),
         Vec3(forward.x, forward.y, forward.z),
         Vec3(up.x, up.y, up.z),
-        camera->mHorizontalFOV);
+        camera->mHorizontalFOV*.5f);
 }
 
-void FileLoader::ProcessMesh(const aiScene* scene, aiNode* mesh_node, aiMesh* mesh, std::shared_ptr<Scene> my_scene) {
+void AssimpFileLoader::ProcessMesh(const aiScene* scene, aiNode* mesh_node, aiMesh* mesh, std::shared_ptr<Scene> my_scene) {
     aiNode* cur_node = mesh_node;
     aiMatrix4x4 trans;
     // Get the specific transformation for this mesh
@@ -210,7 +210,7 @@ void FileLoader::ProcessMesh(const aiScene* scene, aiNode* mesh_node, aiMesh* me
     my_scene->tris_.insert(my_scene->tris_.end(), std::make_move_iterator(mesh_tris.begin()), std::make_move_iterator(mesh_tris.end()));
 }
 
-void FileLoader::ProcessNode(const aiScene* scene, aiNode* node, shared_ptr<Scene> my_scene) {
+void AssimpFileLoader::ProcessNode(const aiScene* scene, aiNode* node, shared_ptr<Scene> my_scene) {
     int num = node->mNumChildren;
     for (unsigned int i = 0; i < node->mNumMeshes; ++i) {
         ProcessMesh(scene, node, scene->mMeshes[node->mMeshes[i]], my_scene);
@@ -221,7 +221,7 @@ void FileLoader::ProcessNode(const aiScene* scene, aiNode* node, shared_ptr<Scen
     }
 }
 
-void FileLoader::ProcessLight(const aiScene* ai_scene, aiNode* light_node, aiLight* light, shared_ptr<Scene> my_scene) {
+void AssimpFileLoader::ProcessLight(const aiScene* ai_scene, aiNode* light_node, aiLight* light, shared_ptr<Scene> my_scene) {
     aiNode* cur_node = light_node;
     aiMatrix4x4 trans;
     // Get the specific transformation for this mesh
@@ -239,29 +239,23 @@ void FileLoader::ProcessLight(const aiScene* ai_scene, aiNode* light_node, aiLig
     // transform the light data
     switch (light->mType) {
     case aiLightSourceType::aiLightSource_POINT: {
-        Vec4 light_pos = transform * Vec4(light->mPosition.x, light->mPosition.y, light->mPosition.z, 1);
-
         new_light->type_ = LightType::POINT;
-        new_light->pos_ = Vec3(light_pos.x, light_pos.y, light_pos.z);
+        new_light->src_ = transform * Vec4(light->mPosition.x, light->mPosition.y, light->mPosition.z, 1);
         new_light->clr_ = Color(light->mColorDiffuse.r, light->mColorDiffuse.g, light->mColorDiffuse.b);
-        new_light->attenu_const_ = light->mAttenuationConstant;
-        new_light->attenu_lin_ = light->mAttenuationLinear;
-        new_light->attenu_quad_ = light->mAttenuationQuadratic;
+        new_light->dim_.x = light->mAttenuationConstant;
+        new_light->dim_.y = light->mAttenuationLinear;
+        new_light->dim_.z = light->mAttenuationQuadratic;
         break;
     }
     case aiLightSourceType::aiLightSource_DIRECTIONAL: {
-        Vec4 light_dir = transform * Vec4(light->mDirection.x, light->mDirection.y, light->mDirection.z, 0);
-
         new_light->type_ = LightType::DIR;
-        new_light->dir1_ = Vec3(light_dir.x, light_dir.y, light_dir.z);
+        new_light->src_ = transform * Vec4(light->mDirection.x, light->mDirection.y, light->mDirection.z, 0);
         new_light->clr_ = Color(light->mColorDiffuse.r, light->mColorDiffuse.g, light->mColorDiffuse.b);
         break;
     }
     case aiLightSourceType::aiLightSource_SPOT: {
-        Vec4 light_pos = transform * Vec4(light->mPosition.x, light->mPosition.y, light->mPosition.z, 1);
-
         new_light->type_ = LightType::SPOT;
-        new_light->pos_ = Vec3(light_pos.x, light_pos.y, light_pos.z);
+        new_light->src_ = transform * Vec4(light->mPosition.x, light->mPosition.y, light->mPosition.z, 1);
         new_light->angle1_ = light->mAngleInnerCone;
         new_light->angle2_ = light->mAngleOuterCone;
         new_light->clr_ = Color(light->mColorDiffuse.r, light->mColorDiffuse.g, light->mColorDiffuse.b);
@@ -275,10 +269,10 @@ void FileLoader::ProcessLight(const aiScene* ai_scene, aiNode* light_node, aiLig
 
 // Get the material parameters- ambient, diffuse, specular, emissive and load
 // optional textures
-void FileLoader::ProcessMaterial(const aiScene* scene, aiMaterial* mat, shared_ptr<Scene> my_scene) {
+void AssimpFileLoader::ProcessMaterial(const aiScene* scene, aiMaterial* mat, shared_ptr<Scene> my_scene) {
     // start with ambient
     aiColor3D a, d, s, t, e;
-    float ior(0), rough(-1);
+    float ior(0), rough(-1), metalness(0);
     mat->Get(AI_MATKEY_COLOR_AMBIENT, a);
     mat->Get(AI_MATKEY_COLOR_DIFFUSE, d);
     mat->Get(AI_MATKEY_COLOR_SPECULAR, s);
@@ -289,11 +283,12 @@ void FileLoader::ProcessMaterial(const aiScene* scene, aiMaterial* mat, shared_p
     if(rough == -1) {
         mat->Get(AI_MATKEY_SHININESS, rough);
     }
+    mat->Get(AI_MATKEY_REFLECTIVITY, metalness);
     int num_base = mat->GetTextureCount(aiTextureType_BASE_COLOR);
     int num_diffuse = mat->GetTextureCount(aiTextureType_DIFFUSE);
     int num_normal = mat->GetTextureCount(aiTextureType_NORMALS);
     int num_metal = mat->GetTextureCount(aiTextureType_METALNESS);
-    Material *new_material = new IsotropicMaterial(Color(d.r, d.g, d.b), Color(s.r, s.g, s.b), Color(e.r, e.g, e.b), ior, rough);
+    Material *new_material = new CookTorrenceMaterial(Color(d.r, d.g, d.b), Color(s.r, s.g, s.b), Color(e.r, e.g, e.b), ior, rough, metalness);
 
     for (int i = 0; i < num_diffuse; ++i) {
         int idx = ProcessTexture(mat, i, aiTextureType_DIFFUSE, my_scene);
@@ -308,7 +303,7 @@ void FileLoader::ProcessMaterial(const aiScene* scene, aiMaterial* mat, shared_p
     my_scene->mats_.emplace(name, new_material);
 }
 
-int FileLoader::ProcessTexture(aiMaterial* mat, int index, aiTextureType type, shared_ptr<Scene> my_scene) {
+int AssimpFileLoader::ProcessTexture(aiMaterial* mat, int index, aiTextureType type, shared_ptr<Scene> my_scene) {
     aiString tex_name;
     mat->GetTexture(type, index, &tex_name);
     const char* texture_path = tex_name.C_Str();

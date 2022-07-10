@@ -78,14 +78,13 @@ enum LightType {POINT, DIR, SPOT, AREA};
 struct Light {
     LightType type_;  //! The light type
     Color clr_;  //! The light color
+    Vec4 src_;  //! The light positional/directional source - homogeneous coordinate determines whether it is a point or direction
+    Vec3 dim_;  // x- constant, y-linear, z-quadratic, for spot and point lights
+    Vec3 left_;  //! Light basis x vector - only applies to area lights
+    Vec3 up_;  //! Light basis y vector - only applies to area lights
     // optional values
-    Vec3 pos_;  //! The light position- applies to point, spot, and area lights
-    Vec3 dir1_;  //! The direction- applies to directional and spot lights
     float angle1_;  //! Innermost angle- only applies to spot lights
     float angle2_;  //! Outermost angle- only applies to spot lights
-    float attenu_const_;  //! Constant falloff value- applies to point and spot lights
-    float attenu_lin_;  //! Linear falloff value- applies to point and spot lights
-    float attenu_quad_;  //! Quadratic falloff value- applies to point and spot lights
 };
 
 #endif  // STRUCTS_H

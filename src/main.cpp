@@ -13,14 +13,15 @@
 #include "image_lib.h"
 #include "structs.h"
 #include "collision.h"
-#include "file_loader.h"
+#include "assimp_file_loader.h"
+#include "legacy_file_loader.h"
 #include "ray_tracer.h"
 
 int main(int argc, char* argv[]) {
     std::string file_name = std::string(DEBUG_DIR) + '/'; 
-    std::string out_name("elma.png");
+    std::string out_name("exporter_test.png");
     if(argc < 2) {
-        file_name += "Elma_side.dae";
+        file_name += "dragon_arealight.txt";
     }
     else if (argc < 3) {
         file_name += argv[1];
@@ -30,12 +31,21 @@ int main(int argc, char* argv[]) {
         out_name = argv[2];
     }
     std::cout << "Opening " << file_name << std::endl;
-    FileLoader file_loader;
-    std::shared_ptr<Scene> my_scene = file_loader.LoadScene(file_name);
-    int width(400), height(300);
+    std::shared_ptr<Scene> my_scene;
+    if (file_name.find(".txt") != std::string::npos) {
+        // legacy files from CSCI 5607 format
+        std::cout << "Legacy format detected\n";
+        LegacyFileLoader file_loader;
+        my_scene = file_loader.LoadScene(file_name);
+    }
+    else {
+        AssimpFileLoader file_loader;
+        my_scene = file_loader.LoadScene(file_name);
+    }
+    int width(1280), height(720);
     int half_width = width >> 1;
     int half_height = height >> 1;
-    my_scene->camera_.SetDist(half_width / std::tanf(.5f * my_scene->camera_.GetHalfFOV()));
+    my_scene->camera_.ConfigureExtent(width, height);
     RayTracer ray_tracer(my_scene);
     auto s_time = std::chrono::high_resolution_clock::now();
     shared_ptr<Image> img = ray_tracer.Render(width, height);
@@ -44,10 +54,7 @@ int main(int argc, char* argv[]) {
     int minutes = mil.count() / 60000;
     int seconds = mil.count() / 1000 - 60 * minutes;
     int milliseconds = mil.count() - 60000 * minutes - 1000 * seconds; 
-    std::cout << "\nRender Time\n" 
-              << "\tMinutes: " << minutes << "\n"
-              << "\tSeconds: " << seconds << "\n"
-              << "\tMilliseconds: " << milliseconds <<"\n";
+    std::cout << "\nRender Time " << minutes << ":" << seconds << "." << milliseconds << "\n"; 
     std::cout << "Change output file name (y/n)? ";
     char new_file_name;
     std::cin >> new_file_name;

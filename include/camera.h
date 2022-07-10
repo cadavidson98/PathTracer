@@ -14,8 +14,7 @@ enum camera_type {
 class Camera {
     public:
         Camera(Vec3 eye = Vec3(0,0,0), Vec3 forward = Vec3(0,0,-1), Vec3 up = Vec3(0,1,0), float horiz_half_fov = 3.14f/4.f, camera_type proj_type = camera_type::perspective);
-        void SetDist(float near_dist);
-        float GetHalfFOV() { return half_angle_fov_; };
+        void ConfigureExtent(float img_w, float img_h);
         Vec3 Eye() { return cam_eye_; };
         Ray CreateRay(float img_x, float img_y);
     private:
