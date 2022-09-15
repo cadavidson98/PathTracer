@@ -16,7 +16,7 @@ class Matrix4x4 {
 
     static Matrix4x4 Invert(const Matrix4x4 &mat);
     friend Vec4 operator *(const Matrix4x4 &lhs, const Vec4 &rhs);
-    
+    friend Matrix4x4 operator *(const Matrix4x4 &lhs, const Matrix4x4 &rhs);
     private:
     // Column Major
     float data_[16];

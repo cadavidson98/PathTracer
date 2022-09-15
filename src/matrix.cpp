@@ -45,93 +45,70 @@ Matrix4x4 Matrix4x4::Invert(const Matrix4x4 &mat) {
     memset(zeros, 0, 16 * sizeof(float));
     Matrix4x4 inverse(zeros);
 
-    inverse.data_[VALUE(1, 1)] += mat.data_[VALUE(2, 2)] * mat.data_[VALUE(3, 3)] * mat.data_[VALUE(4, 4)] + mat.data_[VALUE(2, 3)] * mat.data_[VALUE(3, 4)] * mat.data_[VALUE(4, 2)] + mat.data_[VALUE(2, 4)] * mat.data_[VALUE(3, 2)] * mat.data_[VALUE(4, 3)];
-    inverse.data_[VALUE(1, 1)] -= (mat.data_[VALUE(2, 4)] * mat.data_[VALUE(3, 3)] * mat.data_[VALUE(4, 2)] + mat.data_[VALUE(2, 3)] * mat.data_[VALUE(3, 2)] * mat.data_[VALUE(4, 4)] + mat.data_[VALUE(2, 2)] * mat.data_[VALUE(3, 4)] * mat.data_[VALUE(4, 3)]);
+    inverse.data_[0]  =  mat.data_[5] * mat.data_[10] * mat.data_[15] - mat.data_[5] * mat.data_[11] * mat.data_[14] - mat.data_[9] * mat.data_[6] * mat.data_[15] + mat.data_[9] * mat.data_[7] * mat.data_[14] + mat.data_[13] * mat.data_[6] * mat.data_[11] - mat.data_[13] * mat.data_[7] * mat.data_[10];
+    inverse.data_[4]  = -mat.data_[4] * mat.data_[10] * mat.data_[15] + mat.data_[4] * mat.data_[11] * mat.data_[14] + mat.data_[8] * mat.data_[6] * mat.data_[15] - mat.data_[8] * mat.data_[7] * mat.data_[14] - mat.data_[12] * mat.data_[6] * mat.data_[11] + mat.data_[12] * mat.data_[7] * mat.data_[10];
+    inverse.data_[8]  =  mat.data_[4] * mat.data_[9]  * mat.data_[15] - mat.data_[4] * mat.data_[11] * mat.data_[13] - mat.data_[8] * mat.data_[5] * mat.data_[15] + mat.data_[8] * mat.data_[7] * mat.data_[13] + mat.data_[12] * mat.data_[5] * mat.data_[11] - mat.data_[12] * mat.data_[7] * mat.data_[9];
+    inverse.data_[12] = -mat.data_[4] * mat.data_[9]  * mat.data_[14] + mat.data_[4] * mat.data_[10] * mat.data_[13] + mat.data_[8] * mat.data_[5] * mat.data_[14] - mat.data_[8] * mat.data_[6] * mat.data_[13] - mat.data_[12] * mat.data_[5] * mat.data_[10] + mat.data_[12] * mat.data_[6] * mat.data_[9];
+    inverse.data_[1]  = -mat.data_[1] * mat.data_[10] * mat.data_[15] + mat.data_[1] * mat.data_[11] * mat.data_[14] + mat.data_[9] * mat.data_[2] * mat.data_[15] - mat.data_[9] * mat.data_[3] * mat.data_[14] - mat.data_[13] * mat.data_[2] * mat.data_[11] + mat.data_[13] * mat.data_[3] * mat.data_[10];
+    inverse.data_[5]  =  mat.data_[0] * mat.data_[10] * mat.data_[15] - mat.data_[0] * mat.data_[11] * mat.data_[14] - mat.data_[8] * mat.data_[2] * mat.data_[15] + mat.data_[8] * mat.data_[3] * mat.data_[14] + mat.data_[12] * mat.data_[2] * mat.data_[11] - mat.data_[12] * mat.data_[3] * mat.data_[10];
+    inverse.data_[9]  = -mat.data_[0] * mat.data_[9]  * mat.data_[15] + mat.data_[0] * mat.data_[11] * mat.data_[13] + mat.data_[8] * mat.data_[1] * mat.data_[15] - mat.data_[8] * mat.data_[3] * mat.data_[13] - mat.data_[12] * mat.data_[1] * mat.data_[11] + mat.data_[12] * mat.data_[3] * mat.data_[9];
+    inverse.data_[13] =  mat.data_[0] * mat.data_[9]  * mat.data_[14] - mat.data_[0] * mat.data_[10] * mat.data_[13] - mat.data_[8] * mat.data_[1] * mat.data_[14] + mat.data_[8] * mat.data_[2] * mat.data_[13] + mat.data_[12] * mat.data_[1] * mat.data_[10] - mat.data_[12] * mat.data_[2] * mat.data_[9];
+    inverse.data_[2]  =  mat.data_[1] * mat.data_[6]  * mat.data_[15] - mat.data_[1] * mat.data_[7]  * mat.data_[14] - mat.data_[5] * mat.data_[2] * mat.data_[15] + mat.data_[5] * mat.data_[3] * mat.data_[14] + mat.data_[13] * mat.data_[2] * mat.data_[7]  - mat.data_[13] * mat.data_[3] * mat.data_[6];
+    inverse.data_[6]  = -mat.data_[0] * mat.data_[6]  * mat.data_[15] + mat.data_[0] * mat.data_[7]  * mat.data_[14] + mat.data_[4] * mat.data_[2] * mat.data_[15] - mat.data_[4] * mat.data_[3] * mat.data_[14] - mat.data_[12] * mat.data_[2] * mat.data_[7]  + mat.data_[12] * mat.data_[3] * mat.data_[6];
+    inverse.data_[10] =  mat.data_[0] * mat.data_[5]  * mat.data_[15] - mat.data_[0] * mat.data_[7]  * mat.data_[13] - mat.data_[4] * mat.data_[1] * mat.data_[15] + mat.data_[4] * mat.data_[3] * mat.data_[13] + mat.data_[12] * mat.data_[1] * mat.data_[7]  - mat.data_[12] * mat.data_[3] * mat.data_[5];
+    inverse.data_[14] = -mat.data_[0] * mat.data_[5]  * mat.data_[14] + mat.data_[0] * mat.data_[6]  * mat.data_[13] + mat.data_[4] * mat.data_[1] * mat.data_[14] - mat.data_[4] * mat.data_[2] * mat.data_[13] - mat.data_[12] * mat.data_[1] * mat.data_[6]  + mat.data_[12] * mat.data_[2] * mat.data_[5];
+    inverse.data_[3]  = -mat.data_[1] * mat.data_[6]  * mat.data_[11] + mat.data_[1] * mat.data_[7]  * mat.data_[10] + mat.data_[5] * mat.data_[2] * mat.data_[11] - mat.data_[5] * mat.data_[3] * mat.data_[10] - mat.data_[9]  * mat.data_[2] * mat.data_[7]  + mat.data_[9]  * mat.data_[3] * mat.data_[6];
+    inverse.data_[7]  =  mat.data_[0] * mat.data_[6]  * mat.data_[11] - mat.data_[0] * mat.data_[7]  * mat.data_[10] - mat.data_[4] * mat.data_[2] * mat.data_[11] + mat.data_[4] * mat.data_[3] * mat.data_[10] + mat.data_[8]  * mat.data_[2] * mat.data_[7]  - mat.data_[8]  * mat.data_[3] * mat.data_[6];
+    inverse.data_[11] = -mat.data_[0] * mat.data_[5]  * mat.data_[11] + mat.data_[0] * mat.data_[7]  * mat.data_[9]  + mat.data_[4] * mat.data_[1] * mat.data_[11] - mat.data_[4] * mat.data_[3] * mat.data_[9]  - mat.data_[8]  * mat.data_[1] * mat.data_[7]  + mat.data_[8]  * mat.data_[3] * mat.data_[5];
+    inverse.data_[15] =  mat.data_[0] * mat.data_[5]  * mat.data_[10] - mat.data_[0] * mat.data_[6]  * mat.data_[9]  - mat.data_[4] * mat.data_[1] * mat.data_[10] + mat.data_[4] * mat.data_[2] * mat.data_[9]  + mat.data_[8]  * mat.data_[1] * mat.data_[6]  - mat.data_[8]  * mat.data_[2] * mat.data_[5];
 
-    inverse.data_[VALUE(1, 2)] += mat.data_[VALUE(2, 1)] * mat.data_[VALUE(3, 3)] * mat.data_[VALUE(4, 4)] + mat.data_[VALUE(2, 3)] * mat.data_[VALUE(3, 4)] * mat.data_[VALUE(4, 1)] + mat.data_[VALUE(2, 4)] * mat.data_[VALUE(3, 1)] * mat.data_[VALUE(4, 3)];
-    inverse.data_[VALUE(1, 2)] -= (mat.data_[VALUE(2, 4)] * mat.data_[VALUE(3, 3)] * mat.data_[VALUE(4, 1)] + mat.data_[VALUE(2, 3)] * mat.data_[VALUE(3, 1)] * mat.data_[VALUE(4, 4)] + mat.data_[VALUE(2, 1)] * mat.data_[VALUE(3, 4)] * mat.data_[VALUE(4, 3)]);
-
-    inverse.data_[VALUE(1, 3)] += mat.data_[VALUE(2, 2)] * mat.data_[VALUE(3, 3)] * mat.data_[VALUE(4, 4)] + mat.data_[VALUE(2, 3)] * mat.data_[VALUE(3, 4)] * mat.data_[VALUE(4, 2)] + mat.data_[VALUE(2, 4)] * mat.data_[VALUE(3, 2)] * mat.data_[VALUE(4, 3)];
-    inverse.data_[VALUE(1, 3)] -= (mat.data_[VALUE(2, 4)] * mat.data_[VALUE(3, 3)] * mat.data_[VALUE(4, 2)] + mat.data_[VALUE(2, 3)] * mat.data_[VALUE(3, 2)] * mat.data_[VALUE(4, 4)] + mat.data_[VALUE(2, 2)] * mat.data_[VALUE(3, 4)] * mat.data_[VALUE(4, 3)]);
-
-    inverse.data_[VALUE(1, 4)] += mat.data_[VALUE(2, 1)] * mat.data_[VALUE(3, 2)] * mat.data_[VALUE(4, 3)] + mat.data_[VALUE(2, 2)] * mat.data_[VALUE(3, 3)] * mat.data_[VALUE(4, 1)] + mat.data_[VALUE(2, 3)] * mat.data_[VALUE(3, 1)] * mat.data_[VALUE(4, 2)];
-    inverse.data_[VALUE(1, 4)] -= (mat.data_[VALUE(2, 3)] * mat.data_[VALUE(3, 2)] * mat.data_[VALUE(4, 1)] + mat.data_[VALUE(2, 2)] * mat.data_[VALUE(3, 1)] * mat.data_[VALUE(4, 3)] + mat.data_[VALUE(2, 1)] * mat.data_[VALUE(3, 3)] * mat.data_[VALUE(4, 2)]);
-
-    inverse.data_[VALUE(2, 1)] += mat.data_[VALUE(1, 2)] * mat.data_[VALUE(3, 3)] * mat.data_[VALUE(4, 4)] + mat.data_[VALUE(1, 3)] * mat.data_[VALUE(3, 4)] * mat.data_[VALUE(4, 2)] + mat.data_[VALUE(1, 4)] * mat.data_[VALUE(3, 2)] * mat.data_[VALUE(4, 3)];
-    inverse.data_[VALUE(2, 1)] -= (mat.data_[VALUE(1, 4)] * mat.data_[VALUE(3, 3)] * mat.data_[VALUE(4, 2)] + mat.data_[VALUE(1, 3)] * mat.data_[VALUE(3, 2)] * mat.data_[VALUE(4, 4)] + mat.data_[VALUE(1, 2)] * mat.data_[VALUE(3, 4)] * mat.data_[VALUE(4, 3)]);
-
-    inverse.data_[VALUE(2, 2)] += mat.data_[VALUE(1, 1)] * mat.data_[VALUE(3, 3)] * mat.data_[VALUE(4, 4)] + mat.data_[VALUE(1, 3)] * mat.data_[VALUE(3, 4)] * mat.data_[VALUE(4, 1)] + mat.data_[VALUE(1, 4)] * mat.data_[VALUE(3, 1)] * mat.data_[VALUE(4, 2)];
-    inverse.data_[VALUE(2, 2)] -= (mat.data_[VALUE(1, 4)] * mat.data_[VALUE(3, 3)] * mat.data_[VALUE(4, 1)] + mat.data_[VALUE(1, 3)] * mat.data_[VALUE(3, 1)] * mat.data_[VALUE(4, 4)] + mat.data_[VALUE(1, 1)] * mat.data_[VALUE(3, 4)] * mat.data_[VALUE(4, 2)]);
-
-    inverse.data_[VALUE(2, 3)] += mat.data_[VALUE(1, 1)] * mat.data_[VALUE(3, 2)] * mat.data_[VALUE(4, 4)] + mat.data_[VALUE(1, 2)] * mat.data_[VALUE(3, 4)] * mat.data_[VALUE(4, 1)] + mat.data_[VALUE(1, 4)] * mat.data_[VALUE(3, 1)] * mat.data_[VALUE(4, 2)];
-    inverse.data_[VALUE(2, 3)] -= (mat.data_[VALUE(1, 4)] * mat.data_[VALUE(3, 2)] * mat.data_[VALUE(4, 1)] + mat.data_[VALUE(1, 2)] * mat.data_[VALUE(3, 1)] * mat.data_[VALUE(4, 4)] + mat.data_[VALUE(1, 1)] * mat.data_[VALUE(3, 4)] * mat.data_[VALUE(4, 2)]);
-
-    inverse.data_[VALUE(2, 4)] += mat.data_[VALUE(1, 1)] * mat.data_[VALUE(3, 2)] * mat.data_[VALUE(4, 3)] + mat.data_[VALUE(1, 2)] * mat.data_[VALUE(3, 3)] * mat.data_[VALUE(4, 1)] + mat.data_[VALUE(1, 3)] * mat.data_[VALUE(3, 1)] * mat.data_[VALUE(4, 2)];
-    inverse.data_[VALUE(2, 4)] -= (mat.data_[VALUE(1, 3)] * mat.data_[VALUE(3, 2)] * mat.data_[VALUE(4, 1)] + mat.data_[VALUE(1, 2)] * mat.data_[VALUE(3, 1)] * mat.data_[VALUE(4, 3)] + mat.data_[VALUE(1, 1)] * mat.data_[VALUE(3, 3)] * mat.data_[VALUE(4, 2)]);
-
-    inverse.data_[VALUE(3, 1)] += mat.data_[VALUE(1, 2)] * mat.data_[VALUE(2, 3)] * mat.data_[VALUE(4, 4)] + mat.data_[VALUE(1, 3)] * mat.data_[VALUE(2, 4)] * mat.data_[VALUE(4, 2)] + mat.data_[VALUE(1, 4)] * mat.data_[VALUE(2, 2)] * mat.data_[VALUE(4, 3)];
-    inverse.data_[VALUE(3, 1)] -= (mat.data_[VALUE(1, 4)] * mat.data_[VALUE(2, 3)] * mat.data_[VALUE(4, 2)] + mat.data_[VALUE(1, 3)] * mat.data_[VALUE(2, 2)] * mat.data_[VALUE(4, 4)] + mat.data_[VALUE(1, 2)] * mat.data_[VALUE(2, 4)] * mat.data_[VALUE(4, 3)]);
-
-    inverse.data_[VALUE(3, 2)] += mat.data_[VALUE(1, 1)] * mat.data_[VALUE(2, 3)] * mat.data_[VALUE(4, 4)] + mat.data_[VALUE(1, 3)] * mat.data_[VALUE(2, 4)] * mat.data_[VALUE(4, 1)] + mat.data_[VALUE(1, 4)] * mat.data_[VALUE(2, 1)] * mat.data_[VALUE(4, 3)];
-    inverse.data_[VALUE(3, 2)] -= (mat.data_[VALUE(1, 4)] * mat.data_[VALUE(2, 3)] * mat.data_[VALUE(4, 1)] + mat.data_[VALUE(1, 3)] * mat.data_[VALUE(2, 1)] * mat.data_[VALUE(4, 4)] + mat.data_[VALUE(1, 1)] * mat.data_[VALUE(2, 4)] * mat.data_[VALUE(4, 3)]);
-
-    inverse.data_[VALUE(3, 3)] += mat.data_[VALUE(1, 1)] * mat.data_[VALUE(2, 2)] * mat.data_[VALUE(4, 4)] + mat.data_[VALUE(1, 2)] * mat.data_[VALUE(2, 3)] * mat.data_[VALUE(4, 1)] + mat.data_[VALUE(1, 4)] * mat.data_[VALUE(2, 1)] * mat.data_[VALUE(4, 2)];
-    inverse.data_[VALUE(3, 3)] -= (mat.data_[VALUE(1, 4)] * mat.data_[VALUE(2, 2)] * mat.data_[VALUE(4, 1)] + mat.data_[VALUE(1, 2)] * mat.data_[VALUE(2, 1)] * mat.data_[VALUE(4, 3)] + mat.data_[VALUE(1, 1)] * mat.data_[VALUE(2, 4)] * mat.data_[VALUE(4, 2)]);
-
-    inverse.data_[VALUE(3, 4)] += mat.data_[VALUE(2, 2)] * mat.data_[VALUE(3, 3)] * mat.data_[VALUE(4, 4)] + mat.data_[VALUE(2, 3)] * mat.data_[VALUE(3, 4)] * mat.data_[VALUE(4, 2)] + mat.data_[VALUE(2, 4)] * mat.data_[VALUE(3, 2)] * mat.data_[VALUE(4, 3)];
-    inverse.data_[VALUE(3, 4)] -= (mat.data_[VALUE(2, 4)] * mat.data_[VALUE(3, 3)] * mat.data_[VALUE(4, 2)] + mat.data_[VALUE(2, 3)] * mat.data_[VALUE(3, 2)] * mat.data_[VALUE(4, 4)] + mat.data_[VALUE(2, 2)] * mat.data_[VALUE(3, 4)] * mat.data_[VALUE(4, 3)]);
-
-    inverse.data_[VALUE(4, 1)] += mat.data_[VALUE(2, 3)] * mat.data_[VALUE(3, 2)] * mat.data_[VALUE(4, 1)] + mat.data_[VALUE(2, 2)] * mat.data_[VALUE(3, 1)] * mat.data_[VALUE(4, 3)] + mat.data_[VALUE(2, 1)] * mat.data_[VALUE(3, 3)] * mat.data_[VALUE(4, 2)];
-    inverse.data_[VALUE(4, 1)] -= (mat.data_[VALUE(2, 1)] * mat.data_[VALUE(3, 2)] * mat.data_[VALUE(4, 3)] + mat.data_[VALUE(2, 2)] * mat.data_[VALUE(3, 3)] * mat.data_[VALUE(4, 1)] + mat.data_[VALUE(2, 3)] * mat.data_[VALUE(3, 1)] * mat.data_[VALUE(4, 2)]);
-
-    inverse.data_[VALUE(4, 2)] += mat.data_[VALUE(1, 1)] * mat.data_[VALUE(3, 2)] * mat.data_[VALUE(4, 3)] + mat.data_[VALUE(1, 2)] * mat.data_[VALUE(3, 3)] * mat.data_[VALUE(4, 1)] + mat.data_[VALUE(1, 3)] * mat.data_[VALUE(3, 1)] * mat.data_[VALUE(4, 2)];
-    inverse.data_[VALUE(4, 2)] -= (mat.data_[VALUE(1, 3)] * mat.data_[VALUE(3, 2)] * mat.data_[VALUE(4, 1)] + mat.data_[VALUE(1, 2)] * mat.data_[VALUE(3, 1)] * mat.data_[VALUE(4, 3)] + mat.data_[VALUE(1, 1)] * mat.data_[VALUE(3, 3)] * mat.data_[VALUE(4, 2)]);
-
-    inverse.data_[VALUE(4, 3)] += mat.data_[VALUE(1, 3)] * mat.data_[VALUE(2, 2)] * mat.data_[VALUE(3, 1)] + mat.data_[VALUE(1, 2)] * mat.data_[VALUE(2, 1)] * mat.data_[VALUE(4, 3)] + mat.data_[VALUE(1, 1)] * mat.data_[VALUE(2, 3)] * mat.data_[VALUE(4, 2)];
-    inverse.data_[VALUE(4, 3)] -= (mat.data_[VALUE(1, 1)] * mat.data_[VALUE(2, 2)] * mat.data_[VALUE(4, 3)] + mat.data_[VALUE(1, 2)] * mat.data_[VALUE(2, 3)] * mat.data_[VALUE(4, 1)] + mat.data_[VALUE(1, 3)] * mat.data_[VALUE(2, 1)] * mat.data_[VALUE(4, 2)]);
-
-    inverse.data_[VALUE(4, 4)] += mat.data_[VALUE(1, 1)] * mat.data_[VALUE(2, 2)] * mat.data_[VALUE(3, 3)] + mat.data_[VALUE(1, 2)] * mat.data_[VALUE(2, 3)] * mat.data_[VALUE(3, 1)] + mat.data_[VALUE(1, 3)] * mat.data_[VALUE(2, 1)] * mat.data_[VALUE(3, 2)];
-    inverse.data_[VALUE(4, 4)] -= (mat.data_[VALUE(1, 3)] * mat.data_[VALUE(2, 2)] * mat.data_[VALUE(3, 1)] + mat.data_[VALUE(1, 2)] * mat.data_[VALUE(2, 1)] * mat.data_[VALUE(3, 3)] + mat.data_[VALUE(1, 1)] * mat.data_[VALUE(2, 3)] * mat.data_[VALUE(3, 2)]);
-
-    // Find the determinant
-    float det = 0.f;
-    det += (VALUE(2, 2) * VALUE(3, 3) * VALUE(4, 4) +
-        VALUE(2, 3) * VALUE(3, 4) * VALUE(4, 2) +
-        VALUE(2, 4) * VALUE(3, 2) * VALUE(4, 3));
-    det -= (VALUE(2, 4) * VALUE(3, 3) * VALUE(4, 2) +
-        VALUE(2, 3) * VALUE(3, 2) * VALUE(4, 4) +
-        VALUE(2, 2) * VALUE(3, 4) * VALUE(4, 3));
-    det *= VALUE(1, 1);
-
-    det += (VALUE(1, 2) * VALUE(3, 3) * VALUE(4, 4) +
-        VALUE(1, 3) * VALUE(3, 4) * VALUE(4, 2) +
-        VALUE(1, 4) * VALUE(3, 2) * VALUE(4, 3));
-    det -= (VALUE(1, 4) * VALUE(3, 3) * VALUE(4, 2) +
-        VALUE(1, 3) * VALUE(3, 2) * VALUE(4, 4) +
-        VALUE(1, 2) * VALUE(3, 4) * VALUE(4, 3));
-    det *= -VALUE(2, 1);
-
-    det += (VALUE(1, 2) * VALUE(2, 3) * VALUE(4, 4) +
-        VALUE(1, 3) * VALUE(2, 4) * VALUE(4, 2) +
-        VALUE(1, 4) * VALUE(2, 2) * VALUE(4, 3));
-    det -= (VALUE(1, 4) * VALUE(2, 3) * VALUE(4, 2) +
-        VALUE(1, 3) * VALUE(2, 2) * VALUE(4, 4) +
-        VALUE(1, 2) * VALUE(2, 4) * VALUE(4, 3));
-    det *= VALUE(3, 1);
-
-    det += (VALUE(1, 2) * VALUE(2, 3) * VALUE(3, 4) +
-        VALUE(1, 3) * VALUE(2, 4) * VALUE(3, 2) +
-        VALUE(1, 4) * VALUE(2, 2) * VALUE(3, 3));
-    det -= (VALUE(1, 4) * VALUE(2, 3) * VALUE(3, 2) +
-        VALUE(1, 3) * VALUE(2, 2) * VALUE(3, 4) +
-        VALUE(1, 2) * VALUE(2, 4) * VALUE(3, 3));
-    det *= -VALUE(4, 1);
+    float det = mat.data_[0] * inverse.data_[0] + mat.data_[1] * inverse.data_[4] + mat.data_[2] * inverse.data_[8] + mat.data_[3] * inverse.data_[12];
 
     for (int i = 0; i < 16; ++i) {
         inverse.data_[i] = inverse.data_[i] / det;
     }
 
     return inverse;
+}
+
+Matrix4x4 operator *(const Matrix4x4 &lhs, const Matrix4x4 &rhs) {
+    Matrix4x4 result;
+    result.data_[0] = lhs.data_[0] * rhs.data_[0] + lhs.data_[4] * rhs.data_[1] 
+                    + lhs.data_[8] * rhs.data_[2] + lhs.data_[12] * rhs.data_[3];
+    result.data_[1] = lhs.data_[1] * rhs.data_[0] + lhs.data_[5] * rhs.data_[1] 
+                    + lhs.data_[9] * rhs.data_[2] + lhs.data_[13] * rhs.data_[3];
+    result.data_[2] = lhs.data_[2] * rhs.data_[0] + lhs.data_[6] * rhs.data_[1] 
+                    + lhs.data_[10] * rhs.data_[2] + lhs.data_[14] * rhs.data_[3];
+    result.data_[3] = lhs.data_[3] * rhs.data_[0] + lhs.data_[7] * rhs.data_[1] 
+                    + lhs.data_[9] * rhs.data_[2] + lhs.data_[15] * rhs.data_[3];
+
+    result.data_[4] = lhs.data_[0] * rhs.data_[4] + lhs.data_[4] * rhs.data_[5] 
+                    + lhs.data_[8] * rhs.data_[6] + lhs.data_[12] * rhs.data_[7];
+    result.data_[5] = lhs.data_[1] * rhs.data_[4] + lhs.data_[5] * rhs.data_[5] 
+                    + lhs.data_[9] * rhs.data_[6] + lhs.data_[13] * rhs.data_[7];
+    result.data_[6] = lhs.data_[2] * rhs.data_[4] + lhs.data_[6] * rhs.data_[5] 
+                    + lhs.data_[10] * rhs.data_[6] + lhs.data_[14] * rhs.data_[7];
+    result.data_[7] = lhs.data_[3] * rhs.data_[4] + lhs.data_[7] * rhs.data_[5] 
+                    + lhs.data_[9] * rhs.data_[6] + lhs.data_[15] * rhs.data_[7];
+
+    result.data_[8] = lhs.data_[0] * rhs.data_[8] + lhs.data_[4] * rhs.data_[9] 
+                    + lhs.data_[8] * rhs.data_[10] + lhs.data_[12] * rhs.data_[11];
+    result.data_[9] = lhs.data_[1] * rhs.data_[8] + lhs.data_[5] * rhs.data_[9] 
+                    + lhs.data_[9] * rhs.data_[10] + lhs.data_[13] * rhs.data_[11];
+    result.data_[10] = lhs.data_[2] * rhs.data_[8] + lhs.data_[6] * rhs.data_[9] 
+                    + lhs.data_[10] * rhs.data_[10] + lhs.data_[13] * rhs.data_[11];
+    result.data_[11] = lhs.data_[3] * rhs.data_[8] + lhs.data_[7] * rhs.data_[9] 
+                    + lhs.data_[11] * rhs.data_[10] + lhs.data_[15] * rhs.data_[11];
+
+    result.data_[12] = lhs.data_[0] * rhs.data_[12] + lhs.data_[4] * rhs.data_[13] 
+                    + lhs.data_[8] * rhs.data_[14] + lhs.data_[12] * rhs.data_[15];
+    result.data_[13] = lhs.data_[1] * rhs.data_[12] + lhs.data_[5] * rhs.data_[13] 
+                    + lhs.data_[9] * rhs.data_[14] + lhs.data_[13] * rhs.data_[15];
+    result.data_[14] = lhs.data_[2] * rhs.data_[12] + lhs.data_[6] * rhs.data_[13] 
+                    + lhs.data_[10] * rhs.data_[14] + lhs.data_[13] * rhs.data_[15];
+    result.data_[15] = lhs.data_[3] * rhs.data_[12] + lhs.data_[7] * rhs.data_[13] 
+                    + lhs.data_[11] * rhs.data_[14] + lhs.data_[15] * rhs.data_[15];
+    return result;
 }
 
 Vec4 operator *(const Matrix4x4 &lhs, const Vec4 &rhs) {

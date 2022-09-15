@@ -6,11 +6,11 @@
 #include "math_helpers.h"
 
 CookTorrenceMaterial::CookTorrenceMaterial(Color albedo, Color specular, Color emissive, float ior, float rough, float metal) : 
-albedo_(albedo), specular_(specular), emissive_(emissive), ior_(ior), roughness_(rough), metalness_(metal) {
-    lambertian_pdf_ = 1.f / (2.f * M_PI); 
+albedo_(albedo), specular_(specular), emissive_(emissive), ior_(ior), roughness_(rough*rough), metalness_(metal) {
+    lambertian_pdf_ = 1.f / (RMth::PI_f); 
 }
 
-Color CookTorrenceMaterial::Sample(const Vec3 &incoming, Vec3 &outgoing, float &pdf, const HitInfo &collisionPt, std::shared_ptr<Sampler2D> BRDF_sampler) {
+Color CookTorrenceMaterial::Sample(const Vec3 &outgoing, Vec3 &incoming, float &pdf, const HitInfo &collisionPt, std::shared_ptr<Sampler2D> BRDF_sampler) {
     // Illuminate using Cook-Torence reflectance model
     // First, determine which BRDF we need to use for this ray
     float x, y;
@@ -18,70 +18,63 @@ Color CookTorrenceMaterial::Sample(const Vec3 &incoming, Vec3 &outgoing, float &
     float tot_luminance = 1.f;
     float percent_diffuse = 1.f - metalness_;
     float percent_spec = metalness_;
-    if(true || x <= percent_diffuse) {
-        // lambertian diffuse BTDF
+
+    Vec3 bitangent = collisionPt.norm.Cross(outgoing).UnitVec();
+    Vec3 tangent = collisionPt.norm.Cross(bitangent).UnitVec();
+    
+    if(x <= percent_diffuse) {
+        // lambertian diffuse BTDF with cosine weighted sampling
         // start by finding a random outgoing direction
-        Vec3 bitangent = collisionPt.norm.Cross(incoming).UnitVec();
-        Vec3 tangent = collisionPt.norm.Cross(bitangent).UnitVec();
-        RandomUnitVectorInHemisphere(bitangent, collisionPt.norm, tangent, outgoing, BRDF_sampler);
-        pdf = lambertian_pdf_;
-        //Color base = (albedo_map_) ? albedo_map_->sample(collisionPt.uv.x, collisionPt.uv.y) : albedo_;
-        return BRDF(incoming, outgoing, collisionPt);
-        // now find the albedo color at this point
-        // return base * percent_diffuse * M_1_PI;
+        RandomUnitVectorInHemisphere(bitangent, collisionPt.norm, tangent, incoming, BRDF_sampler);
+        pdf = collisionPt.norm.Dot(incoming) * lambertian_pdf_;
+        return BRDF(incoming, outgoing, collisionPt) / percent_diffuse;
     }
     else {
         // specular
-        /*float in_dot_n = incoming.Dot(collisionPt.norm);
-        // get basis around reflection vector
-        Vec3 reflect = (incoming - 2 * in_dot_n * collisionPt.norm).UnitVec();
-        Vec3 w = reflect.Cross(collisionPt.norm).UnitVec();
-        Vec3 u = w.Cross(reflect).UnitVec();
-        // now we can take a random sample to get a glossy reflection
-        float x, y;
-        BRDF_sampler->NextSample(x, y);
-        // map x, y to [-a/2, a/2]
-        x = roughness_ * -.5f + roughness_ * x;
-        y = roughness_ * -.5f + roughness_ * y;
-        outgoing = (reflect + w * x + u * y).UnitVec();
-        float rough_sqr = roughness_ * roughness_;
-        // since we sample over a square and not a disk, this pdf is the area of a pyramid
-        // this will be changed to a disk after evaluating whether this method of jitter rays
-        // works
-        pdf = rough_sqr + 2.f * roughness_ * std::sqrt((roughness_ * .5f) * (roughness_ * .5f) + 1.f);
-        pdf = 1.f / pdf;
-        return albedo_ * percent_spec;*/
+        RandomUnitVectorInGGX(bitangent, collisionPt.norm, tangent, outgoing, incoming, pdf, BRDF_sampler);
+        // Perfect Specular Reflection
+        //incoming = 2.f * outgoing.Dot(collisionPt.norm) * collisionPt.norm - outgoing;
+        //incoming.Normalize();
+        //pdf = 1.f;  // dirac delta
+        if (collisionPt.norm.Dot(incoming) < 0) {
+            pdf = 1.f;
+            return Color(0.f, 0.f, 0.f);
+        }
+        else {
+            //return specular_ / percent_spec;
+            return BRDF(incoming, outgoing, collisionPt) / percent_spec;
+        }
     }
 }
 
+// nomenclature guide:
+// incoming -> omega_i -> toLight (L) -> The light arriving at this point
+// outgoing -> omega_o -> toEye (V) -> The light reflected at this point
 Color CookTorrenceMaterial::BRDF(const Vec3 &incoming, const Vec3 &outgoing, const HitInfo &collision_pt) {
     // lambertian diffuse BTDF
     Color diffuse = (albedo_map_) ? albedo_map_->sample(collision_pt.uv.x, collision_pt.uv.y) : albedo_;
     diffuse = diffuse / (RMth::PI_f);
     // specular
     float in_dot_n = incoming.Dot(collision_pt.norm);
-    
+    float out_dot_n = outgoing.Dot(collision_pt.norm);
     float rough_sqr = roughness_ * roughness_;
-    float out_dot_h = outgoing.Dot(collision_pt.norm);
+    
     Vec3 halfway = incoming + outgoing;
     halfway.Normalize();
 
     // Approximate microfacets using the GGX normal distribution function
     float n_dot_h = collision_pt.norm.Dot(halfway);
     float chi_h_n = static_cast<float>(n_dot_h > 0.f);
-    float n_dot_h_sqr = n_dot_h * n_dot_h;
-    float denom = n_dot_h_sqr * rough_sqr + (1.f - n_dot_h_sqr);
-    float GGX = (rough_sqr * chi_h_n) / (static_cast<float>(M_PI) * denom * denom);
+    float GGX = chi_h_n * GGXDisbritution(n_dot_h);
     // Geometric attenuation
-    float n_dot_l = collision_pt.norm.Dot(outgoing);
-    float n_dot_v = collision_pt.norm.Dot(incoming);
-    float v_dot_h = incoming.Dot(halfway);
-    float G = GeometryFunction(incoming, collision_pt.norm, halfway) * GeometryFunction(outgoing, collision_pt.norm, halfway);
+    float in_dot_h = incoming.Dot(halfway);
+    float G = SmithGeometry(incoming, collision_pt.norm, halfway) * SmithGeometry(outgoing, collision_pt.norm, halfway);
     // Approximate geometry of microfacets using Schlick
     float F0 = (1.f - ior_) / (1.f + ior_);
     F0 *= F0;
-    float F = F0 + (1.f - F0) * std::pow(v_dot_h, 5);
-    Color reflective = specular_ * (GGX * G * F) / (4.f * n_dot_l * n_dot_v + .05f);
+    float F = SchlickFresnel(F0, outgoing.Dot(halfway));
+    //return Color(F, F, F);
+    Color reflective = specular_ * (GGX * G) / (4.f * std::abs(in_dot_n) * std::abs(out_dot_n));
     return diffuse * (1.f - metalness_) + reflective * metalness_;
 }
     
@@ -90,19 +83,19 @@ Color CookTorrenceMaterial::Emittance() {
 }
 
 void CookTorrenceMaterial::RandomUnitVectorInHemisphere(const Vec3 &bitangent, const Vec3 &normal, const Vec3 &tangent, 
-                                                      Vec3 &result, std::shared_ptr<Sampler2D> generator) {
-    // sart by getting a random unit vector in the unit (hemi)sphere
+                                                        Vec3 &result, std::shared_ptr<Sampler2D> generator) {
+    // sart by getting a random unit vector in the unit disk
     float u1 = 0.f;
     float u2 = 0.f;
     // calculates 2 quasi-random numbers in the range 0-1 inclusive
     generator->NextSample(u1, u2);
-    float radius = sqrtf(1.f - u1 * u1);
-    float theta = 2.f * M_PI * u2;
-    
+    float radius = std::sqrtf(u1);
+    float theta = 2.f * RMth::PI_f * u2;
+
     float x = radius * cos(theta);
     float z = radius * sin(theta);
-    
-    Vec3 rand_vec(x, u1, z);
+    // use malley's method to project it onto the hemisphere
+    Vec3 rand_vec(x, 1.f - x * x - z * z, z);
     Matrix4x4 BNT(Vec4(bitangent, 0), Vec4(normal, 0), Vec4(tangent, 0), Vec4(0, 0, 0, 1));
     Vec4 out_vec = BNT * Vec4(rand_vec, 0);
 
@@ -115,12 +108,68 @@ void CookTorrenceMaterial::RandomUnitVectorInHemisphere(const Vec3 &bitangent, c
         result = result * -1;
     }
 }
+// Adapted from https://schuttejoe.github.io/post/ggximportancesamplingpart1/
+void CookTorrenceMaterial::RandomUnitVectorInGGX(const Vec3 &bitangent, const Vec3 &normal, const Vec3 &tangent, 
+                                                 const Vec3 &outgoing, Vec3 &result, float &pdf, std::shared_ptr<Sampler2D> generator) {
+    
+    Matrix4x4 Tan_To_World(Vec4(bitangent, 0.f), Vec4(normal, 0.f), Vec4(tangent, 0.f), Vec4(0.f, 0.f, 0.f, 1.f));
+    Matrix4x4 World_To_Tan = Matrix4x4::Invert(Tan_To_World);
+    // Sample only in GGX distribution
+    float u1 = 0.f;
+    float u2 = 0.f;
 
-float CookTorrenceMaterial::GeometryFunction(const Vec3 &omega, const Vec3 &normal, const Vec3 &halfway) {
+    generator->NextSample(u1, u2);
+    // Formula from: https://agraphicsguy.wordpress.com/2015/11/01/sampling-microfacet-brdf/
+    float rough_sqr = roughness_ * roughness_;
+    float theta = std::acos((1.f - u1) / (u1 * (rough_sqr - 1.f) + 1.f));
+    float phi = 2.f * RMth::PI_f * u2;
+
+    float cos_theta = std::cos(theta);
+    float sin_theta = std::sin(theta);
+
+    // convert from polar to cartesian
+    Vec3 sample(sin_theta * std::cos(phi),
+                cos_theta,
+                sin_theta * std::sin(phi));
+    sample.Normalize();
+    // we sampled a normal, but we want a reflection vector, so reflect
+    float O_dot_S = w_o.Dot(sample);
+    float O_dot_N = w_o.Dot(Vec3(0.f, 1.f, 0.f));
+    float S_dot_N = sample.Dot(Vec3(0.f, 1.f, 0.f));
+    if (O_dot_N * S_dot_N < 0.f) {
+        sample = -sample;
+        O_dot_S = -O_dot_S;
+    }
+
+    Vec3 w_i = 2.f * O_dot_S * sample - w_o;
+    w_i.Normalize();
+    // calculate the pdf for the reflection vector in cartesian coords
+    pdf = GGXDisbritution(cos_theta) * cos_theta / (4.f * O_dot_S);
+    
+    // take back from tangent space to world space
+    Vec4 out_vec = Tan_To_World * Vec4(w_i, 0.f);
+    result.x = out_vec.x;
+    result.y = out_vec.y;
+    result.z = out_vec.z;
+    result.Normalize();
+}
+
+float CookTorrenceMaterial::GGXDisbritution(float cos_theta) {
+    float cos_sqr = cos_theta * cos_theta;
+    float rough_sqr = roughness_ * roughness_;
+    float denom = cos_sqr * (rough_sqr - 1.f) + 1.f;
+    return rough_sqr / (RMth::PI_f * denom * denom);
+}
+
+float CookTorrenceMaterial::SmithGeometry(const Vec3 &omega, const Vec3 &normal, const Vec3 &halfway) {
     float w_dot_h = std::max(omega.Dot(halfway), 0.f);
     float w_dot_n = std::max(omega.Dot(normal), 0.f);
     
     float chi = static_cast<float>((w_dot_h / w_dot_n) > 0.f);
     float tan_sqr = (1.f - w_dot_h * w_dot_h) / (w_dot_h * w_dot_h);
     return (chi * 2.f) / (1.f + std::sqrt(1.f + roughness_ * roughness_ * tan_sqr));
+}
+
+float CookTorrenceMaterial::SchlickFresnel(float F0, float cos_theta) {
+    return F0 + (1.f - F0) * std::pow(1.f - cos_theta, 5);
 }

@@ -9,6 +9,7 @@ set(SOURCEFILES src/main.cpp
                 src/bvh.cpp 
                 src/camera.cpp 
                 src/cook_torrence.cpp
+                src/disney_principled.cpp
                 src/legacy_file_loader.cpp
                 src/matrix.cpp 
                 src/ray_tracer.cpp 
@@ -23,6 +24,7 @@ set(HEADERFILES include/config.h
                 include/camera.h
                 include/collision.h
                 include/cook_torrence.h
+                include/disney_principled.h
                 include/file_loader.h
                 include/legacy_file_loader.h
                 include/math_helpers.h
@@ -32,6 +34,7 @@ set(HEADERFILES include/config.h
                 include/ray_tracer.h
                 include/sampler.h
                 include/scene.h
+                include/shading_helpers.h
                 include/sobol2D.h
                 include/structs.h
                 include/random_sampler.h

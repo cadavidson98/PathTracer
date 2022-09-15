@@ -80,9 +80,9 @@ struct compressed_node {
  * bounding volume heirarchy construction to find best split across leaf nodes.
  */
 struct triangle_info {
-  Dimension AABB_;  //! bounding box which encapsulates the triangle
-  Vec3 centroid_;  //! center of the bounding box
-  int tri_offset_;  //! integer offset to the triangle stored in this node
+    Dimension AABB_;  //! bounding box which encapsulates the triangle
+    Vec3 centroid_;  //! center of the bounding box
+    int tri_offset_;  //! integer offset to the triangle stored in this node
 };
 
 /**

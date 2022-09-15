@@ -14,6 +14,7 @@ class Vec2 {
         float MagnitudeSqr() const;
         void Normalize();
         Vec2 UnitVec() const;
+        Vec2 operator -() const;
         Vec2 friend operator /(const float& lhs, const Vec2& rhs);
         Vec2 friend operator *(const float& lhs, const Vec2& rhs);
         Vec2 friend operator /(const Vec2& lhs, const float& rhs);
@@ -38,6 +39,7 @@ class Vec3 {
         float MagnitudeSqr() const;
         void Normalize();
         Vec3 UnitVec() const;
+        Vec3 operator -() const;
         Vec3 friend operator /(const float &lhs, const Vec3 &rhs);
         Vec3 friend operator *(const float& lhs, const Vec3& rhs);
         Vec3 friend operator /(const Vec3& lhs, const float& rhs);
@@ -61,7 +63,7 @@ class Vec4 {
         float Magnitude();
         float MagnitudeSqr();
         void Normalize();
-
+        Vec4 operator -() const;
         Vec4 friend operator /(const float &lhs, const Vec4 &rhs);
         Vec4 friend operator -(const Vec4 &lhs, const Vec4 &rhs);
         Vec4 friend operator +(const Vec4 &lhs, const Vec4 &rhs);

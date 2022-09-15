@@ -29,6 +29,10 @@ Vec2 Vec2::UnitVec() const {
     return cpy;
 }
 
+Vec2 Vec2::operator-() const {
+    return Vec2(-x, -y);
+}
+
 Vec3::Vec3(float _x, float _y, float _z) : x(_x), y(_y), z(_z) {
 
 }
@@ -68,6 +72,10 @@ Vec3 Vec3::UnitVec() const {
     return cpy;
 }
 
+Vec3 Vec3::operator-() const {
+    return Vec3(-x, -y, -z);
+}
+
 Vec4::Vec4(float _x, float _y, float _z, float _w) : x(_x), y(_y), z(_z), w(_w) {
 
 }
@@ -98,4 +106,8 @@ void Vec4::Normalize() {
     y /= magnitude;
     z /= magnitude;
     w /= magnitude;
+}
+
+Vec4 Vec4::operator-() const {
+    return Vec4(-x, -y, -z, -w);
 }

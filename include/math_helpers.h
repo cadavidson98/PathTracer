@@ -1,26 +1,36 @@
 #ifndef MATH_HELPERS_H
 #define MATH_HELPERS_H
 
+#include "vec.h"
 // Rendering Math Namespace
 namespace RMth {
     
     const float PI_f = 3.14159265f;
     const double PI_d = 3.14159265;
     
-    constexpr float toRadians(float x) {
+    template <class T>
+    inline T toRadians(T x) {
         return x * PI_f / 180.f;
     }
 
-    constexpr double toRadians(double x) {
-        return x * PI_d / 180.0;
-    }
-
-    constexpr float toDegrees(float x) {
+    template <class T>
+    inline T toDegrees(T x) {
         return x * 180.f / PI_f;
     }
 
-    constexpr double toDegrees(double x) {
-        return x * 180.0 / PI_d;
+    template <class T>
+    inline T sqr(T x) {
+        return x * x;
+    }
+
+    template <class T>
+    inline T sqr(T x) {
+        return x * x;
+    }
+
+    template <class T>
+    inline T lerp(T x, T y, float t) {
+        return x + t * (y - x);
     }
 }
 #endif  // MATH_HELPERS_H
