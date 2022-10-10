@@ -4,6 +4,7 @@
 #include <math.h>
 #include <algorithm>
 #include "math_helpers.h"
+#include "shading_helpers.h"
 
 CookTorrenceMaterial::CookTorrenceMaterial(Color albedo, Color specular, Color emissive, float ior, float rough, float metal) : 
 albedo_(albedo), specular_(specular), emissive_(emissive), ior_(ior), roughness_(rough*rough), metalness_(metal) {
@@ -19,8 +20,8 @@ Color CookTorrenceMaterial::Sample(const Vec3 &outgoing, Vec3 &incoming, float &
     float percent_diffuse = 1.f - metalness_;
     float percent_spec = metalness_;
 
-    Vec3 bitangent = collisionPt.norm.Cross(outgoing).UnitVec();
-    Vec3 tangent = collisionPt.norm.Cross(bitangent).UnitVec();
+    Vec3 bitangent, tangent;
+    RMth::OrthonormalBasis(collisionPt.norm, bitangent, tangent);
     
     if(x <= percent_diffuse) {
         // lambertian diffuse BTDF with cosine weighted sampling
@@ -32,16 +33,11 @@ Color CookTorrenceMaterial::Sample(const Vec3 &outgoing, Vec3 &incoming, float &
     else {
         // specular
         RandomUnitVectorInGGX(bitangent, collisionPt.norm, tangent, outgoing, incoming, pdf, BRDF_sampler);
-        // Perfect Specular Reflection
-        //incoming = 2.f * outgoing.Dot(collisionPt.norm) * collisionPt.norm - outgoing;
-        //incoming.Normalize();
-        //pdf = 1.f;  // dirac delta
         if (collisionPt.norm.Dot(incoming) < 0) {
             pdf = 1.f;
-            return Color(0.f, 0.f, 0.f);
+            return Color::GreyScale(0.f);
         }
         else {
-            //return specular_ / percent_spec;
             return BRDF(incoming, outgoing, collisionPt) / percent_spec;
         }
     }
@@ -108,12 +104,15 @@ void CookTorrenceMaterial::RandomUnitVectorInHemisphere(const Vec3 &bitangent, c
         result = result * -1;
     }
 }
+
 // Adapted from https://schuttejoe.github.io/post/ggximportancesamplingpart1/
 void CookTorrenceMaterial::RandomUnitVectorInGGX(const Vec3 &bitangent, const Vec3 &normal, const Vec3 &tangent, 
                                                  const Vec3 &outgoing, Vec3 &result, float &pdf, std::shared_ptr<Sampler2D> generator) {
-    
     Matrix4x4 Tan_To_World(Vec4(bitangent, 0.f), Vec4(normal, 0.f), Vec4(tangent, 0.f), Vec4(0.f, 0.f, 0.f, 1.f));
     Matrix4x4 World_To_Tan = Matrix4x4::Invert(Tan_To_World);
+    Vec4 out_tan = World_To_Tan * Vec4(outgoing, 0.f);
+    Vec3 w_o = Vec3(out_tan.x, out_tan.y, out_tan.z);
+
     // Sample only in GGX distribution
     float u1 = 0.f;
     float u2 = 0.f;

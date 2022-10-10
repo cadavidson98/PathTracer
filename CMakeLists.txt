@@ -33,6 +33,7 @@ set(HEADERFILES include/config.h
                 include/ray.h 
                 include/ray_tracer.h
                 include/sampler.h
+                include/sampling_helpers.h
                 include/scene.h
                 include/shading_helpers.h
                 include/sobol2D.h

@@ -13,8 +13,10 @@
 struct Color {
   float r,g,b;
 
-  Color(float r, float g, float b) : r(r), g(g), b(b) {}
-  Color() : r(0), g(0), b(0) {}
+  Color(float r, float g, float b) : r(r), g(g), b(b) {};
+  Color() : r(0), g(0), b(0) {};
+
+  static Color GreyScale(float r) { return Color(r, r, r); };
   float Luminance();
 };
 
@@ -24,6 +26,10 @@ inline float Color::Luminance() {
 
 inline Color operator+(Color lhs, Color rhs) {
     return Color(lhs.r+rhs.r, lhs.g+rhs.g, lhs.b+rhs.b);
+}
+
+inline Color operator-(Color lhs, Color rhs) {
+    return Color(lhs.r-rhs.r, lhs.g-rhs.g, lhs.b-rhs.b);
 }
 
 inline Color operator*(Color lhs, Color rhs) {

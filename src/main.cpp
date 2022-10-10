@@ -21,7 +21,7 @@ int main(int argc, char* argv[]) {
     std::string file_name = std::string(DEBUG_DIR) + '/'; 
     std::string out_name("exporter_test.png");
     if(argc < 2) {
-        file_name += "sibenik.dae";
+        file_name += "dragonEmissive.txt";
     }
     else if (argc < 3) {
         file_name += argv[1];
@@ -62,7 +62,7 @@ int main(int argc, char* argv[]) {
         std::cout << "Enter new file name: ";
         std::cin >> out_name;
     }
-    img->write(out_name.c_str());
+    img->write((std::string(DEBUG_DIR) + '/' + out_name).c_str());
     std::cout << "Wrote result to " << out_name << std::endl;
     return 0;
 }

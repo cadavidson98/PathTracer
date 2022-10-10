@@ -13,7 +13,7 @@
 RayTracer::RayTracer(shared_ptr<Scene> scene_data) {
     image_scene_ = scene_data;
     max_depth_ = 8;
-    num_samples_ = 16;
+    num_samples_ = 32;
 }
 
 RayTracer::~RayTracer() {
@@ -105,7 +105,7 @@ Color RayTracer::RayCast(Ray ray, std::shared_ptr<Sampler2D> generator) {
                     contrib = contrib + scenePt.m->BRDF(to_eye, to_light, scenePt) * to_light.Dot(scenePt.norm);
                 }
             }
-            contrib = contrib / samples_per_light;
+            contrib = contrib / static_cast<float>(samples_per_light);
             illum = illum + contrib;
         }
     }
@@ -175,7 +175,7 @@ Color RayTracer::PathTraceIterative(Ray cam_ray, shared_ptr<Sampler2D> generator
 
         // russian roulette
         if (depth > 3) {
-            float p = std::max({throughput.r, throughput.g, throughput.b});
+            float p = throughput.Luminance();
             float u, v;
             generator->NextSample(u, v);
             if(u > p) {

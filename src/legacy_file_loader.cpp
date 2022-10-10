@@ -1,5 +1,7 @@
 #include "legacy_file_loader.h"
 #include "cook_torrence.h"
+#include "disney_principled.h"
+
 #include "vec.h"
 #include "math_helpers.h"
 
@@ -57,7 +59,15 @@ std::shared_ptr<Scene> LegacyFileLoader::LoadScene(std::string file_name) {
                     >> specular.r >> specular.g >> specular.b
                     >> emissive.r >> emissive.g >> emissive.b
                     >> ior >> rough >> metal;
-            cur_mat = new CookTorrenceMaterial(albedo, specular, emissive, ior, rough, metal);
+            if (emissive.r + emissive.g + emissive.b > 0.f || metal == 0.f)
+            {
+                cur_mat = new CookTorrenceMaterial(albedo, specular, emissive, ior, rough, metal);
+            }
+            else
+            {
+                cur_mat = new DisneyPrincipledMaterial(Color(albedo.r, albedo.g, albedo.b), 0.f, metal, 0.f, 0.f, rough, 1.f, 0.f, 0.f, 0.f, 0.f);
+            }
+            
             new_scene->mats_["Material " + std::to_string(num_mats++)] = cur_mat;
         }
         else if (!command.compare("max_vertices:")) {

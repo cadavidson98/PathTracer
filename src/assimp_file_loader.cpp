@@ -1,5 +1,6 @@
 #include "assimp_file_loader.h"
 #include "cook_torrence.h"
+#include "disney_principled.h"
 #include "camera.h"
 #include "config.h"
 #include "matrix.h"
@@ -288,8 +289,15 @@ void AssimpFileLoader::ProcessMaterial(const aiScene* scene, aiMaterial* mat, sh
     int num_diffuse = mat->GetTextureCount(aiTextureType_DIFFUSE);
     int num_normal = mat->GetTextureCount(aiTextureType_NORMALS);
     int num_metal = mat->GetTextureCount(aiTextureType_METALNESS);
-    Material *new_material = new CookTorrenceMaterial(Color(d.r, d.g, d.b), Color(s.r, s.g, s.b), Color(e.r, e.g, e.b), ior, rough, metalness);
-
+    Material *new_material;
+    if (e.r + e.g + e.b > 0.f)
+    {
+        new_material = new CookTorrenceMaterial(Color(d.r, d.g, d.b), Color(s.r, s.g, s.b), Color(e.r, e.g, e.b), ior, rough, metalness);
+    }
+    else
+    {
+        new_material = new DisneyPrincipledMaterial(Color(d.r, d.g, d.b), 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
+    }
     for (int i = 0; i < num_diffuse; ++i) {
         int idx = ProcessTexture(mat, i, aiTextureType_DIFFUSE, my_scene);
         new_material->albedo_map_ = my_scene->textures_[idx];

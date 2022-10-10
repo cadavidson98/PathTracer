@@ -24,5 +24,11 @@ private:
     float sheen_tint_;
     float clrcoat_;
     float clrcoat_gloss_;
+
+    void GetAnisoParams(float &a_x, float &a_y);
+
+    Color DisneyDiffuse(const Vec3 &incoming, const Vec3 &outgoing, const HitInfo &collision_pt);
+    Color DisneySpecular(const Vec3 &incoming, const Vec3 &outgoing, const HitInfo &collision_pt);
+    Color DisneyClearcoat(const Vec3 &incoming, const Vec3 &outgoing, const HitInfo &collision_pt);
 };
 #endif
