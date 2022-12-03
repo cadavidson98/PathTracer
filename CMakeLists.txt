@@ -4,45 +4,23 @@ project(Path_Tracer LANGUAGES C CXX)
 message("Current dir: ${CMAKE_CURRENT_SOURCE_DIR}")
 
 set(SHADER_DIR ${CMAKE_CURRENT_SOURCE_DIR}/data)
-set(SOURCEFILES src/main.cpp 
-                src/assimp_file_loader.cpp                 
-                src/bvh.cpp 
-                src/camera.cpp 
-                src/cook_torrence.cpp
-                src/disney_principled.cpp
-                src/legacy_file_loader.cpp
-                src/matrix.cpp 
-                src/ray_tracer.cpp 
-                src/scene.cpp
-                src/sobol2D.cpp 
-                src/random_sampler.cpp
-                src/vec.cpp)
+set(MATH_DIR ${CMAKE_CURRENT_SOURCE_DIR}/math)
+set(GEOM_DIR ${CMAKE_CURRENT_SOURCE_DIR}/geom)
+set(TEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/test)
+set(TEST_NAME scene_graph_tests)
 
-set(HEADERFILES include/config.h
-                include/assimp_file_loader.h
-                include/bvh.h 
-                include/camera.h
-                include/collision.h
-                include/cook_torrence.h
-                include/disney_principled.h
-                include/file_loader.h
-                include/legacy_file_loader.h
-                include/math_helpers.h
-                include/material.h
-                include/matrix.h
-                include/ray.h 
-                include/ray_tracer.h
-                include/sampler.h
-                include/sampling_helpers.h
-                include/scene.h
-                include/shading_helpers.h
-                include/sobol2D.h
-                include/structs.h
-                include/random_sampler.h
-                include/vec.h)
 
-add_executable(${PROJECT_NAME} ${SOURCEFILES} ${HEADERFILES})
+file(GLOB_RECURSE MATH_SOURCE math/*.cpp)
+file(GLOB_RECURSE MATH_HEADER math/*.h)
 
+file(GLOB_RECURSE GEOM_SOURCE geom/*.cpp)
+file(GLOB_RECURSE GEOM_HEADER geom/*.h)
+
+file(GLOB_RECURSE CORE_SOURCE src/*.cpp)
+file(GLOB_RECURSE CORE_HEADER include/*.h)
+
+add_executable(${PROJECT_NAME} ${MATH_SOURCE} ${MATH_HEADER} ${GEOM_SOURCE} ${GEOM_HEADER} ${CORE_SOURCE} ${CORE_HEADER})
+add_executable(${TEST_NAME} ${MATH_SOURCE} ${MATH_HEADER} ${GEOM_SOURCE} ${GEOM_HEADER} ${TEST_DIR}/test_scene_graph_load.cpp src/bvh.cpp include/bvh.h include/vec.h src/vec.cpp include/matrix.h src/matrix.cpp)
 set(BUILD_SHARED_LIBS FALSE CACHE BOOL "x" FORCE)
 set(ASSIMP_NO_EXPORT TRUE CACHE BOOL "x" FORCE)
 set(ASSIMP_BUILD_TESTS FALSE CACHE BOOL "x" FORCE)
@@ -59,8 +37,12 @@ add_subdirectory(extern/stbimage)
 
 find_package(OpenMP)
 
-target_include_directories(${PROJECT_NAME} PUBLIC include)
+target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR} include ${MATH_DIR} ${GEOM_DIR})
 target_link_libraries(${PROJECT_NAME} stbimage assimp OpenMP::OpenMP_CXX)
+
+target_include_directories(${TEST_NAME} PUBLIC ${CMAKE_SOURCE_DIR} include ${MATH_DIR} ${GEOM_DIR})
+target_link_libraries(${TEST_NAME} stbimage assimp OpenMP::OpenMP_CXX)
+
 
 set(DATA_DIR_BUILD ${CMAKE_CURRENT_SOURCE_DIR}/data)
 set(DATA_DIR_INSTALL ${CMAKE_INSTALL_PREFIX}/share/${PROJECT_NAME}/data)
