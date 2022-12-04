@@ -9,6 +9,7 @@ namespace cblt
     class Triangle final : public Geometry
     {
         public:
+            Triangle();
             Triangle(const Vec3 &p1, const Vec3 &p2, const Vec3 &p3);
             Triangle(const Vec3 &p1, const Vec3 &p2, const Vec3 &p3, 
                      const Vec3 &n1, const Vec3 &n2, const Vec3 &n3);

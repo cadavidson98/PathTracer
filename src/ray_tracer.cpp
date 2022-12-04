@@ -4,13 +4,14 @@
 #include <algorithm>
 #include <omp.h>
 
-#include "math_helpers.h"
+#include "math/math_helpers.h"
+#include "math/constants.h"
+
 #include "collision.h"
 #include "random_sampler.h"
 #include "sobol2D.h"
-#include "random_sampler.h"
 
-RayTracer::RayTracer(shared_ptr<Scene> scene_data) {
+RayTracer::RayTracer(shared_ptr<cblt::Scene> &scene_data) {
     image_scene_ = scene_data;
     max_depth_ = 8;
     num_samples_ = 32;
@@ -32,14 +33,20 @@ shared_ptr<Image> RayTracer::Render(int width, int height) {
     #pragma omp parallel
     #endif
     {
-        shared_ptr<Sampler2D> generator(new RandomSampler2D(omp_get_thread_num() * 1234U));
+        shared_ptr<Sampler2D> generator = std::make_shared<RandomSampler2D>(omp_get_thread_num() * 1234U);
         #ifndef _DEBUG
         #pragma omp for schedule(guided)
         #endif
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {  
                 Color tot_clr(0, 0, 0);
-                for (int i = 1; i <= num_samples_; i++) {
+                float u = half_width - x;
+                float v = half_height - y;
+                cblt::Ray ray = image_scene_->cam_.CreateRay(u, v);
+                cblt::HitInfo hit;
+                hit.hit_time = cblt::inf_F;
+                tot_clr = SceneIntersect(ray, hit) ? Color(1,1,1) : Color(0,0,0);
+                /*for (int i = 1; i <= num_samples_; i++) {
                     float jitter_x, jitter_y;
                     Color path_throughput(1.f, 1.f, 1.f);
                     generator->NextSample(jitter_x, jitter_y);
@@ -47,22 +54,22 @@ shared_ptr<Image> RayTracer::Render(int width, int height) {
                     float u = half_width - (x + jitter_x);
                     float v = half_height - (y + jitter_y);
 
-                    Ray ray = image_scene_->camera_.CreateRay(u, v);
+                    cblt::Ray ray = image_scene_->cam_.CreateRay(u, v);
                     tot_clr = tot_clr + PathTraceIterative(ray, generator);
                     //tot_clr = tot_clr + RayCast(ray, generator);
-                }
-            tot_clr = tot_clr * frac;
-            // Reihard Tone Map
-            Color hdr = tot_clr / (Color(1.f, 1.f, 1.f) + tot_clr);
-            result->setPixel(x, y, Color(std::pow(hdr.r, 1.f/2.2f), std::pow(hdr.g, 1.f/2.2f), std::pow(hdr.b, 1.f/2.2f)));
+                
+                tot_clr = tot_clr * frac;*/
+                // Reihard Tone Map
+                Color hdr = tot_clr / (Color(1.f, 1.f, 1.f) + tot_clr);
+                result->setPixel(x, y, Color(std::pow(hdr.r, 1.f/2.2f), std::pow(hdr.g, 1.f/2.2f), std::pow(hdr.b, 1.f/2.2f)));
             }
         }
     }
     return result;
 }
-
-Color RayTracer::RayCast(Ray ray, std::shared_ptr<Sampler2D> generator) {
-    HitInfo scenePt;
+/*
+Color RayTracer::RayCast(cblt::Ray ray, std::shared_ptr<Sampler2D> generator) {
+    cblt::HitInfo scenePt;
     bool hit = SceneIntersect(ray, scenePt);
     int samples_per_light = 1;
     Color illum(0.f, 0.f, 0.f);
@@ -221,8 +228,8 @@ Color RayTracer::SampleLights(const Ray &incoming, const HitInfo &surface, share
         return Color(0,0,0);
     }
 }
-
+*/
 // Check if the ray intersects the scene.
-bool RayTracer::SceneIntersect(Ray ray, HitInfo &hit) {
-    return image_scene_->scene_triangles_.intersect(ray, hit);
+bool RayTracer::SceneIntersect(cblt::Ray ray, cblt::HitInfo &hit) {
+    return image_scene_->ClosestIntersection(ray, hit);
 }

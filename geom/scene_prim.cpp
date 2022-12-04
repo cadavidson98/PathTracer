@@ -22,11 +22,11 @@ namespace cblt
 
     Ray ScenePrim::TransformRay(const Ray &world_ray)
     {
-        Ray local_ray;
-        Vec4 loc_dir = local_to_world_ * Vec4(world_ray.dir, 0.f);
-        Vec4 loc_pos = local_to_world_ * Vec4(world_ray.pos, 1.f);
-        local_ray.dir = Vec3(loc_dir.x, loc_dir.y, loc_dir.z);
-        local_ray.pos = Vec3(loc_pos.x, loc_pos.y, loc_pos.z);
+        Vec4 loc_pos = world_to_local_ * Vec4(world_ray.pos, 1.f);
+        Vec4 loc_dir = world_to_local_ * Vec4(world_ray.dir, 0.f);
+        Ray local_ray(Vec3(loc_pos.x, loc_pos.y, loc_pos.z), Vec3(loc_dir.x, loc_dir.y, loc_dir.z));
+        local_ray.dir = Normalize(local_ray.dir);
+        local_ray.inv = Normalize(local_ray.inv);
         return local_ray;
     }
 

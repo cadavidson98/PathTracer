@@ -8,7 +8,7 @@
 
 CookTorrenceMaterial::CookTorrenceMaterial(Color albedo, Color specular, Color emissive, float ior, float rough, float metal) : 
 albedo_(albedo), specular_(specular), emissive_(emissive), ior_(ior), roughness_(rough*rough), metalness_(metal) {
-    lambertian_pdf_ = 1.f / (RMth::PI_f); 
+    lambertian_pdf_ = 1.f / (cblt::PI_f); 
 }
 
 Color CookTorrenceMaterial::Sample(const Vec3 &outgoing, Vec3 &incoming, float &pdf, const HitInfo &collisionPt, std::shared_ptr<Sampler2D> BRDF_sampler) {
@@ -49,7 +49,7 @@ Color CookTorrenceMaterial::Sample(const Vec3 &outgoing, Vec3 &incoming, float &
 Color CookTorrenceMaterial::BRDF(const Vec3 &incoming, const Vec3 &outgoing, const HitInfo &collision_pt) {
     // lambertian diffuse BTDF
     Color diffuse = (albedo_map_) ? albedo_map_->sample(collision_pt.uv.x, collision_pt.uv.y) : albedo_;
-    diffuse = diffuse / (RMth::PI_f);
+    diffuse = diffuse / (cblt::PI_f);
     // specular
     float in_dot_n = incoming.Dot(collision_pt.norm);
     float out_dot_n = outgoing.Dot(collision_pt.norm);
@@ -86,7 +86,7 @@ void CookTorrenceMaterial::RandomUnitVectorInHemisphere(const Vec3 &bitangent, c
     // calculates 2 quasi-random numbers in the range 0-1 inclusive
     generator->NextSample(u1, u2);
     float radius = std::sqrtf(u1);
-    float theta = 2.f * RMth::PI_f * u2;
+    float theta = 2.f * cblt::PI_f * u2;
 
     float x = radius * cos(theta);
     float z = radius * sin(theta);
@@ -121,7 +121,7 @@ void CookTorrenceMaterial::RandomUnitVectorInGGX(const Vec3 &bitangent, const Ve
     // Formula from: https://agraphicsguy.wordpress.com/2015/11/01/sampling-microfacet-brdf/
     float rough_sqr = roughness_ * roughness_;
     float theta = std::acos((1.f - u1) / (u1 * (rough_sqr - 1.f) + 1.f));
-    float phi = 2.f * RMth::PI_f * u2;
+    float phi = 2.f * cblt::PI_f * u2;
 
     float cos_theta = std::cos(theta);
     float sin_theta = std::sin(theta);
@@ -157,7 +157,7 @@ float CookTorrenceMaterial::GGXDisbritution(float cos_theta) {
     float cos_sqr = cos_theta * cos_theta;
     float rough_sqr = roughness_ * roughness_;
     float denom = cos_sqr * (rough_sqr - 1.f) + 1.f;
-    return rough_sqr / (RMth::PI_f * denom * denom);
+    return rough_sqr / (cblt::PI_f * denom * denom);
 }
 
 float CookTorrenceMaterial::SmithGeometry(const Vec3 &omega, const Vec3 &normal, const Vec3 &halfway) {

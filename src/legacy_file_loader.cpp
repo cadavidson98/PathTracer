@@ -2,17 +2,22 @@
 #include "cook_torrence.h"
 #include "disney_principled.h"
 
-#include "vec.h"
-#include "math_helpers.h"
+#include "math/vec.h"
+#include "math/constants.h"
+#include "math/math_helpers.h"
+
+#include "geom/triangle.h"
+#include "geom/triangle_mesh.h"
+#include "geom/scene_prim.h"
 
 #include <fstream>
 #include <memory>
 
-std::shared_ptr<Scene> LegacyFileLoader::LoadScene(std::string file_name) {
+std::shared_ptr<cblt::Scene> LegacyFileLoader::LoadScene(std::string file_name) {
     std::ifstream in_file(file_name);
-    std::shared_ptr<Scene> new_scene(new Scene);
+    
     if (!in_file.good()) {
-        return new_scene;
+        return nullptr;
     }
     // text-based OBJ style, can process line-by-line
     // The default material is a matte white
@@ -22,15 +27,14 @@ std::shared_ptr<Scene> LegacyFileLoader::LoadScene(std::string file_name) {
             Color(1.f, 1.f, 1.f), 
             Color(0.f, 0.f, 0.f),
             1.f, 1.f, 0.0f);
-    new_scene->mats_["matte white"] = cur_mat;
-
-    std::vector<float> verts;
-    std::vector<float> norms;
+    //new_scene->mats_["matte white"] = cur_mat;
+    std::vector<std::shared_ptr<cblt::Triangle>> tris;
+    std::vector<cblt::Vec3> verts;
+    std::vector<cblt::Vec3> norms;
     // The maximum and minimum bounds of the scene. Used when generating the BVH
-    Vec3 min_pt(INFINITY, INFINITY, INFINITY), max_pt(-INFINITY, -INFINITY, -INFINITY);
-    int max_vert(-1), max_norm(-1), nindex(0), vindex(0), tindex(0);
+    int max_vert(0), max_norm(0), nindex(0), vindex(0), tindex(0);
     // The Camera variables
-    Vec3 cam_eye, cam_fwd, cam_up;
+    cblt::Vec3 cam_eye, cam_fwd, cam_up;
     float cam_FOV, cam_dist;
     // Read each line in the file
     std::string command, line;
@@ -47,7 +51,7 @@ std::shared_ptr<Scene> LegacyFileLoader::LoadScene(std::string file_name) {
         }
         else if (!command.compare("camera_fov_ha:")) {
             in_file >> cam_FOV;
-            cam_FOV = RMth::toRadians(cam_FOV); // convert to radians
+            cam_FOV = cblt::toRadians(cam_FOV); // convert to radians
         }
         else if (!command.compare("camera_near:")) {
             in_file >> cam_dist;
@@ -68,50 +72,40 @@ std::shared_ptr<Scene> LegacyFileLoader::LoadScene(std::string file_name) {
                 cur_mat = new DisneyPrincipledMaterial(Color(albedo.r, albedo.g, albedo.b), 0.f, metal, 0.f, 0.f, rough, 1.f, 0.f, 0.f, 0.f, 0.f);
             }
             
-            new_scene->mats_["Material " + std::to_string(num_mats++)] = cur_mat;
+            //new_scene->mats_["Material " + std::to_string(num_mats++)] = cur_mat;
         }
         else if (!command.compare("max_vertices:")) {
             in_file >> max_vert;
             // Reserve space for the vertices
-            verts.reserve(3 * max_vert);
+            verts.reserve(max_vert);
         }
         else if (!command.compare("max_normals:")) {
             in_file >> max_norm;
             // Reserve space for the normals
-            norms.reserve(3 * max_norm);
-            norms.resize(3 * max_norm);
+            norms.reserve(max_norm);
         }
         else if (!command.compare("vertex:")) {
             // Add another vertex to the master list
             float vert_x, vert_y, vert_z;
             in_file >> vert_x >> vert_y >> vert_z;
-            verts.push_back(vert_x);
-            verts.push_back(vert_y);
-            verts.push_back(vert_z);
+            verts.emplace_back(vert_x, vert_y, vert_z);
         }
         else if (!command.compare("normal:")) {
             // Add another normal to the master list
-            in_file >> norms[nindex++] >> norms[nindex++] >> norms[nindex++];
+            float norm_x, norm_y, norm_z;
+            in_file >> norm_x, norm_y, norm_z;
+            norms.emplace_back(norm_x, norm_y, norm_z);
         }
         else if (!command.compare("triangle:")) {
             int p1, p2, p3;
-            Triangle new_tri;
+            cblt::Triangle new_tri;
             in_file >> p1 >> p2 >> p3;
             if(p1 >= verts.size() || p2 >= verts.size() || p3 >= verts.size()) {
                 continue;
             }
             // Find the corresponding vertices in the vertex array and add them to the triangle
-            new_tri.p1_ = Vec3(verts[p1*3], verts[p1*3 + 1], verts[p1*3 + 2]);
-            new_tri.p2_ = Vec3(verts[p2*3], verts[p2*3 + 1], verts[p2*3 + 2]);
-            new_tri.p3_ = Vec3(verts[p3*3], verts[p3*3 + 1], verts[p3*3 + 2]);
-            // now get the face normal
-            Vec3 face = (new_tri.p2_ - new_tri.p1_).Cross(new_tri.p3_ - new_tri.p1_);
-            face.Normalize();
-            new_tri.n1_ = 
-            new_tri.n2_ = 
-            new_tri.n3_ = face;
-            new_tri.mat_ = cur_mat;
-            new_scene->tris_.push_back(new_tri);
+            tris.push_back(std::make_shared<cblt::Triangle>(verts[p1], verts[p2], verts[p3]));
+            //new_tri.mat_ = cur_mat;
         }
         else if (!command.compare("normal_triangle:")) {
             int p1, p2, p3, n1, n2, n3;
@@ -120,23 +114,10 @@ std::shared_ptr<Scene> LegacyFileLoader::LoadScene(std::string file_name) {
             || n1 >= norms.size() || n2 >= norms.size() || n3 >= norms.size()) {
                 continue;
             }
-            Triangle new_tri;
-            new_tri.p1_ = Vec3(verts[p1*3], verts[p1*3 + 1], verts[p1*3 + 2]);
-            new_tri.p2_ = Vec3(verts[p2*3], verts[p2*3 + 1], verts[p2*3 + 2]);
-            new_tri.p3_ = Vec3(verts[p3*3], verts[p3*3 + 1], verts[p3*3 + 2]);
-            
-            new_tri.n1_ = Vec3(norms[n1*3], norms[n1*3 + 1], norms[n1*3 + 2]);
-            new_tri.n2_ = Vec3(norms[n2*3], norms[n2*3 + 1], norms[n2*3 + 2]);
-            new_tri.n3_ = Vec3(norms[n3*3], norms[n3*3 + 1], norms[n3*3 + 2]);
-            
-            new_tri.mat_ = cur_mat;
-            new_scene->tris_.push_back(new_tri);
+            //new_tri.mat_ = cur_mat;
+            tris.push_back(std::make_shared<cblt::Triangle>(verts[p1], verts[p2], verts[p3], norms[n1], norms[n2], norms[n3]));
         }
-        /*else if (!command.compare("background:")) {
-            // Deprecated
-            in_file >> b_clr[0] >> b_clr[1] >> b_clr[2];
-        }*/
-        else if (!command.compare("point_light:")) {
+        /*else if (!command.compare("point_light:")) {
             Vec4 pos(0.f, 0.f, 0.f, 1.f);
             Vec3 falloff(0.f, 0.f, 1.f);
             Color clr;
@@ -165,15 +146,22 @@ std::shared_ptr<Scene> LegacyFileLoader::LoadScene(std::string file_name) {
                     >> up.x >> up.y >> up.z;
             Light *quad_light = new Light{LightType::AREA, clr, pos, dims, left, up, 0.f, 0.f};
             new_scene->lights_.push_back(quad_light);
-        }
+        }*/
         else {
             // Unsupported command or comment, just skip it
             std::getline(in_file, line);
             continue;
         }
     }
-    // build the BVH for faster intersection tests
-    new_scene->camera_ = Camera(cam_eye, cam_fwd, cam_up, cam_FOV);
-    new_scene->scene_triangles_ = bvh(new_scene->tris_);
+    // store all the triangles in a single mesh
+    std::shared_ptr<cblt::Geometry> geom = std::make_shared<cblt::TriangleMesh>(tris);
+    std::vector<std::shared_ptr<cblt::ScenePrim>> mesh;
+    mesh.push_back(std::make_shared<cblt::ScenePrim>(geom, cblt::Identity_F));
+    
+    // create the camera
+    cblt::Camera cam(cam_eye, cam_fwd, cam_up, cam_FOV);
+
+    // construct the scene
+    std::shared_ptr<cblt::Scene> new_scene = std::make_shared<cblt::Scene>(cam, mesh);
     return new_scene;
 }

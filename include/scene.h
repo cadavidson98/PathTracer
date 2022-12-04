@@ -2,7 +2,7 @@
 #define SCENE_H
 
 #include "bvh.h"
-#include "camera.h"
+#include "geom/camera.h"
 #include "structs.h"
 #include "image_lib.h"
 #include "Material.h"
@@ -20,7 +20,7 @@ class Scene {
 		Scene();
 		~Scene();
 		std::vector<Light*> lights_;  //! The lights in the scene
-		Camera camera_;  //! The camera from when we render the scene
+		cblt::Camera camera_;  //! The camera from when we render the scene
 		bvh scene_triangles_;  //! The triangles which describe the scene geometry
 		std::vector<Triangle> tris_;  //! Temporary location for all the triangles in the scene
 		std::unordered_map<std::string, Material*> mats_;  //! The materials which describe how light is reflected at each triangle

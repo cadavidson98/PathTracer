@@ -21,7 +21,7 @@ int main(int argc, char* argv[]) {
     std::string file_name = std::string(DEBUG_DIR) + '/'; 
     std::string out_name("exporter_test.png");
     if(argc < 2) {
-        file_name += "dragonEmissive.txt";
+        file_name += "dragon_only.txt";
     }
     else if (argc < 3) {
         file_name += argv[1];
@@ -31,7 +31,7 @@ int main(int argc, char* argv[]) {
         out_name = argv[2];
     }
     std::cout << "Opening " << file_name << std::endl;
-    std::shared_ptr<Scene> my_scene;
+    std::shared_ptr<cblt::Scene> my_scene;
     if (file_name.find(".txt") != std::string::npos) {
         // legacy files from CSCI 5607 format
         std::cout << "Legacy format detected\n";
@@ -45,15 +45,15 @@ int main(int argc, char* argv[]) {
     int width(1280), height(720);
     int half_width = width >> 1;
     int half_height = height >> 1;
-    my_scene->camera_.ConfigureExtent(width, height);
+    my_scene->cam_.ConfigureExtent(static_cast<float>(width), static_cast<float>(height));
     RayTracer ray_tracer(my_scene);
     auto s_time = std::chrono::high_resolution_clock::now();
     shared_ptr<Image> img = ray_tracer.Render(width, height);
     auto e_time = std::chrono::high_resolution_clock::now();
     auto mil = std::chrono::duration_cast<std::chrono::milliseconds>(e_time - s_time);
-    int minutes = mil.count() / 60000;
-    int seconds = mil.count() / 1000 - 60 * minutes;
-    int milliseconds = mil.count() - 60000 * minutes - 1000 * seconds; 
+    int minutes = static_cast<int>(mil.count() / 60000);
+    int seconds = static_cast<int>(mil.count() / 1000 - 60 * minutes);
+    int milliseconds = static_cast<int>(mil.count() - 60000 * minutes - 1000 * seconds); 
     std::cout << "\nRender Time " << minutes << ":" << seconds << "." << milliseconds << "\n"; 
     std::cout << "Change output file name (y/n)? ";
     char new_file_name;

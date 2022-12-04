@@ -18,7 +18,7 @@ namespace cblt {
             BoundingVolume(std::vector<std::shared_ptr<T>> &prims);
             BoundingVolume(std::vector<std::shared_ptr<T>> &prims, std::function<BoundingBox(T)> bounds_calc);
             bool Intersect(const Ray& ray, HitInfo &collison_pt);
-            
+            BoundingBox GetBounds() const;
             struct BoundingNode {
                 BoundingBox bnds_;  //! bounding box which encapsulates the node
                 int l_child_ = -1;  //! integer offset to left child node

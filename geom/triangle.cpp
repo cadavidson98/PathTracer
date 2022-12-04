@@ -5,6 +5,11 @@
 
 namespace cblt {
 
+	Triangle::Triangle() : use_vertex_norms_(false), use_vertex_uvs_(false), face_norm_len_(0.f)
+	{
+		
+	};
+
     Triangle::Triangle(const Vec3 &p1, const Vec3 &p2, const Vec3 &p3) :
     pos1_(p1), pos2_(p2), pos3_(p3) {
         use_vertex_norms_ = use_vertex_uvs_ = false;

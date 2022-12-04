@@ -10,7 +10,9 @@
 namespace cblt {
     template <class T>
     BoundingVolume<T>::BoundingVolume() {
-
+        max_prims_in_leaf_ = 4;
+        BoundingNode root;
+        tree_.push_back(root);
     }
 
     template <class T>
@@ -57,6 +59,11 @@ namespace cblt {
     template<class T>
     bool BoundingVolume<T>::Intersect(const Ray& ray, HitInfo &collison_pt) {
         return IntersectIterative(ray, collison_pt);
+    }
+
+    template<class T>
+    BoundingBox BoundingVolume<T>::GetBounds() const {
+        return tree_[0].bnds_;
     }
 
     /**
@@ -314,12 +321,12 @@ namespace cblt {
     bool BoundingVolume<T>::IntersectIterative(const Ray &ray, HitInfo &hit) {
         std::stack<int> nodes;
         nodes.push(0);
-        float best_time = INFINITY;
+        float best_time = inf_F;
         bool result = false;
         while(!nodes.empty()) {
             int cur_node_idx = nodes.top();
             nodes.pop();
-            float i_time = INFINITY;
+            float i_time = inf_F;
             if(cur_node_idx == -1 || !tree_[cur_node_idx].bnds_.Intersect(ray, i_time) || i_time > best_time) {
                 // Either this node does exist, the ray doesn't collide with it, or we have already found a closer
                 // prim, so there is no reason to check this node
@@ -329,8 +336,10 @@ namespace cblt {
             if(cur_node.l_child_ == -1 && cur_node.r_child_ == -1) {
                 // check to see if there is a collision
                 HitInfo prim_hit;
+                prim_hit.hit_time = inf_F;
                 for (const std::shared_ptr<T> &prim : cur_node.prims_) {
                     HitInfo other_hit;
+                    other_hit.hit_time = inf_F;
                     result = prim->Intersect(ray, other_hit) || result;
                     prim_hit = (other_hit.hit_time < prim_hit.hit_time) ? other_hit : prim_hit;
                 }

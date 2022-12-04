@@ -107,24 +107,9 @@ cblt::Scene *loadScene(std::string &file_name)
     }
     std::shared_ptr<cblt::TriangleMesh> mesh = std::make_shared<cblt::TriangleMesh>(triangles);
     bvh reference = bvh(ref_triangles);
-    std::vector<compressed_node> *tree = reference.tree();
-    std::vector<cblt::BoundingVolume<cblt::Triangle>::BoundingNode> *mesh_tree = mesh->Tree();
     std::vector<std::shared_ptr<cblt::ScenePrim>> prims;
     bool same = true;
-    for(int i = 0; i < std::min(tree->size(), mesh_tree->size()); ++i)
-    {
-        compressed_node old_node = (*tree)[i];
-        cblt::BoundingVolume<cblt::Triangle>::BoundingNode node = (*mesh_tree)[i];
-        bool same_x = old_node.AABB_.min_x_ == node.bnds_.min_.x && old_node.AABB_.max_x_ == node.bnds_.max_.x;
-        bool same_y = old_node.AABB_.min_y_ == node.bnds_.min_.y && old_node.AABB_.max_y_ == node.bnds_.max_.y;
-        bool same_z = old_node.AABB_.min_z_ == node.bnds_.min_.z && old_node.AABB_.max_z_ == node.bnds_.max_.z;
-        if (!same_x || !same_y || !same_z)
-        {
-            same = false;
-        }
-    }
 
     prims.push_back(std::make_shared<cblt::ScenePrim>(mesh, cblt::Identity_F));
-    
-    return new cblt::Scene(prims);
+    return new cblt::Scene(cblt::Camera(), prims);
 }

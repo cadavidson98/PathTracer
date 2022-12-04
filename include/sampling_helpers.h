@@ -1,7 +1,8 @@
 #ifndef SAMPLE_HELPERS
 #define SAMPLE_HEADERS
 
-#include "math_helpers.h"
+#include "math/math_helpers.h"
+#include "math/constants.h"
 #include "shading_helpers.h"
 #include "matrix.h"
 #include "sampler.h"
@@ -18,8 +19,8 @@ namespace RMth
         float u2 = 0.f;
         // calculates 2 quasi-random numbers in the range 0-1 inclusive
         generator->NextSample(u1, u2);
-        float radius = std::sqrtf(std::max(0.f, 1.f - sqr(u1)));
-        float theta = 2.f * RMth::PI_f * u2;
+        float radius = std::sqrtf(std::max(0.f, 1.f - cblt::sqr(u1)));
+        float theta = 2.f * cblt::PI_f * u2;
 
         float x = radius * std::cos(theta);
         float z = radius * std::sin(theta);
@@ -48,7 +49,7 @@ namespace RMth
         // Formula from: https://agraphicsguy.wordpress.com/2015/11/01/sampling-microfacet-brdf/
         float alpha_sqr = alpha * alpha;
         float theta = std::acos((1.f - u1) / (u1 * (alpha_sqr - 1.f) + 1.f));
-        float phi = 2.f * RMth::PI_f * u2;
+        float phi = 2.f * cblt::PI_f * u2;
 
         float cos_theta = std::cos(theta);
         float sin_theta = std::sin(theta);
@@ -86,10 +87,10 @@ namespace RMth
         Vec3 w_o = { out_tan.x, out_tan.y, out_tan.z };
 
         // Formula from: https://agraphicsguy.wordpress.com/2018/07/18/sampling-anisotropic-microfacet-brdf/
-        float phi = std::atan((alpha_y / alpha_x) * std::tan(2 * PI_f * u1 + .5f * PI_f));
-        phi += PI_f * (u1 > .5f);
+        float phi = std::atan((alpha_y / alpha_x) * std::tan(2 * cblt::PI_f * u1 + .5f * cblt::PI_f));
+        phi += cblt::PI_f * (u1 > .5f);
         
-        float alpha_sqr = sqr(std::cos(phi) / alpha_x) + sqr(std::sin(phi) / alpha_y);
+        float alpha_sqr = cblt::sqr(std::cos(phi) / alpha_x) + cblt::sqr(std::sin(phi) / alpha_y);
         float tan_sqr = u2 / ((1.f - u2) * alpha_sqr);
 
         float theta = std::atan(std::sqrt(tan_sqr));
@@ -140,11 +141,11 @@ namespace RMth
         float r = std::sqrt(u1);
         
         float a = 1.f / (1.f + v.y);
-        float phi = (u2 < a) ? (u2 / a) * PI_f : PI_f + (u2 - a) / (1.f - a) * PI_f;
+        float phi = (u2 < a) ? (u2 / a) * cblt::PI_f : cblt::PI_f + (u2 - a) / (1.f - a) * cblt::PI_f;
         float t1 = r * std::cos(phi);
         float t2 = r * std::sin(phi) * ((u2 < a) ? 1.f : v.y);
         
-        Vec3 normal = bitangent * t1 + tangent * t2 + v * std::sqrt(std::max(0.f, 1.f - sqr(t1) - sqr(t2)));
+        Vec3 normal = bitangent * t1 + tangent * t2 + v * std::sqrt(std::max(0.f, 1.f - cblt::sqr(t1) - cblt::sqr(t2)));
         // unstretch
         Vec3 normal_e = { a_x * normal.x, std::max(0.f, normal.y), a_y * normal.z };
         normal_e.Normalize();

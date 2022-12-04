@@ -14,10 +14,10 @@
 #include <iostream>
 
 AssimpFileLoader::AssimpFileLoader() {
-    scene_data_ = std::shared_ptr<Scene>(new Scene);
+    scene_data_ = std::make_shared<Scene>();
 }
 
-shared_ptr<Scene> AssimpFileLoader::LoadScene(string file_name) {
+shared_ptr<cblt::Scene> AssimpFileLoader::LoadScene(string file_name) {
     Assimp::Importer importer;
     const aiScene* scene = importer.ReadFile(file_name,
         aiProcess_CalcTangentSpace |
@@ -29,7 +29,7 @@ shared_ptr<Scene> AssimpFileLoader::LoadScene(string file_name) {
             ProcessCamera(scene, scene->mRootNode->FindNode(scene->mCameras[0]->mName), scene->mCameras[0], scene_data_);
         }
         else {
-            scene_data_->camera_ = Camera(Vec3(0, 0, -5));
+            scene_data_->camera_ = cblt::Camera(cblt::Vec3(0, 0, -5));
         }
         
         for (unsigned int i = 0; i < scene->mNumMaterials; ++i) {
@@ -45,10 +45,10 @@ shared_ptr<Scene> AssimpFileLoader::LoadScene(string file_name) {
         // build the bvh
         scene_data_->scene_triangles_ = bvh(scene_data_->tris_);
     }
-    return scene_data_;
+    return nullptr;
 }
 
-void AssimpFileLoader::ProcessCamera(const aiScene* ai_scene, aiNode* cam_node, aiCamera* camera, shared_ptr<Scene> my_scene) {
+void AssimpFileLoader::ProcessCamera(const aiScene* ai_scene, aiNode* cam_node, aiCamera* camera, shared_ptr<Scene> &my_scene) {
     aiMatrix4x4 cam_mat, local_transform;
     camera->GetCameraMatrix(local_transform);
     aiNode* cur_node = cam_node;
@@ -68,13 +68,13 @@ void AssimpFileLoader::ProcessCamera(const aiScene* ai_scene, aiNode* cam_node, 
     Vec4 eye = cam_rot * origin;
     Vec4 forward = cam_rot * Vec4(camera->mLookAt.x, camera->mLookAt.y, camera->mLookAt.z, 0);
     Vec4 up = cam_rot * Vec4(camera->mUp.x, camera->mUp.y, camera->mUp.z, 0);
-    my_scene->camera_ = Camera(Vec3(eye.x, eye.y, eye.z),
-        Vec3(forward.x, forward.y, forward.z),
-        Vec3(up.x, up.y, up.z),
+    my_scene->camera_ = cblt::Camera(cblt::Vec3(eye.x, eye.y, eye.z),
+        cblt::Vec3(forward.x, forward.y, forward.z),
+        cblt::Vec3(up.x, up.y, up.z),
         camera->mHorizontalFOV*.5f);
 }
 
-void AssimpFileLoader::ProcessMesh(const aiScene* scene, aiNode* mesh_node, aiMesh* mesh, std::shared_ptr<Scene> my_scene) {
+void AssimpFileLoader::ProcessMesh(const aiScene* scene, aiNode* mesh_node, aiMesh* mesh, std::shared_ptr<Scene> &my_scene) {
     aiNode* cur_node = mesh_node;
     aiMatrix4x4 trans;
     // Get the specific transformation for this mesh
@@ -211,7 +211,7 @@ void AssimpFileLoader::ProcessMesh(const aiScene* scene, aiNode* mesh_node, aiMe
     my_scene->tris_.insert(my_scene->tris_.end(), std::make_move_iterator(mesh_tris.begin()), std::make_move_iterator(mesh_tris.end()));
 }
 
-void AssimpFileLoader::ProcessNode(const aiScene* scene, aiNode* node, shared_ptr<Scene> my_scene) {
+void AssimpFileLoader::ProcessNode(const aiScene* scene, aiNode* node, shared_ptr<Scene> &my_scene) {
     int num = node->mNumChildren;
     for (unsigned int i = 0; i < node->mNumMeshes; ++i) {
         ProcessMesh(scene, node, scene->mMeshes[node->mMeshes[i]], my_scene);
@@ -222,7 +222,7 @@ void AssimpFileLoader::ProcessNode(const aiScene* scene, aiNode* node, shared_pt
     }
 }
 
-void AssimpFileLoader::ProcessLight(const aiScene* ai_scene, aiNode* light_node, aiLight* light, shared_ptr<Scene> my_scene) {
+void AssimpFileLoader::ProcessLight(const aiScene* ai_scene, aiNode* light_node, aiLight* light, shared_ptr<Scene> &my_scene) {
     aiNode* cur_node = light_node;
     aiMatrix4x4 trans;
     // Get the specific transformation for this mesh
@@ -270,7 +270,7 @@ void AssimpFileLoader::ProcessLight(const aiScene* ai_scene, aiNode* light_node,
 
 // Get the material parameters- ambient, diffuse, specular, emissive and load
 // optional textures
-void AssimpFileLoader::ProcessMaterial(const aiScene* scene, aiMaterial* mat, shared_ptr<Scene> my_scene) {
+void AssimpFileLoader::ProcessMaterial(const aiScene* scene, aiMaterial* mat, shared_ptr<Scene> &my_scene) {
     // start with ambient
     aiColor3D a, d, s, t, e;
     float ior(0), rough(-1), metalness(0);
@@ -311,7 +311,7 @@ void AssimpFileLoader::ProcessMaterial(const aiScene* scene, aiMaterial* mat, sh
     my_scene->mats_.emplace(name, new_material);
 }
 
-int AssimpFileLoader::ProcessTexture(aiMaterial* mat, int index, aiTextureType type, shared_ptr<Scene> my_scene) {
+int AssimpFileLoader::ProcessTexture(aiMaterial* mat, int index, aiTextureType type, shared_ptr<Scene> &my_scene) {
     aiString tex_name;
     mat->GetTexture(type, index, &tex_name);
     const char* texture_path = tex_name.C_Str();

@@ -8,12 +8,11 @@ namespace cblt {
 
     bool TriangleMesh::Intersect(const Ray &ray, HitInfo &collision_pt) 
     {
-        return false;
-        //return triangles_.Intersect(ray, collision_pt); 
+        return triangles_.Intersect(ray, collision_pt); 
     }
 
     BoundingBox TriangleMesh::GetBounds()
     {
-        return BoundingBox();
+        return triangles_.GetBounds();
     }
 }

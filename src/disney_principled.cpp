@@ -83,9 +83,9 @@ Color DisneyPrincipledMaterial::DisneyDiffuse(const Vec3 &incoming, const Vec3 &
     float fresnel_i = RMth::FresnelSchlick(0.f, n_dot_i);
     float fresnel_o = RMth::FresnelSchlick(0.f, n_dot_o);
 
-    float fresnel_d90 = 0.5f + 2.f * rough_ * RMth::sqr(h_dot_i);
-    float diffuse = RMth::lerp<float>(1.f, fresnel_d90, fresnel_i) * RMth::lerp<float>(1.f, fresnel_d90, fresnel_o);
-    return base_ * .5f * RMth::INV_PI_f * diffuse;
+    float fresnel_d90 = 0.5f + 2.f * rough_ * cblt::sqr(h_dot_i);
+    float diffuse = cblt::lerp<float>(1.f, fresnel_d90, fresnel_i) * cblt::lerp<float>(1.f, fresnel_d90, fresnel_o);
+    return base_ * .5f * cblt::INV_PI_f * diffuse;
     /*
     float fresnel_ss90 = rough_ * RMth::sqr(h_dot_i);
     float subsurface = 1.25f * 
@@ -126,7 +126,7 @@ Color DisneyPrincipledMaterial::DisneySpecular(const Vec3 &incoming, const Vec3 
     
     float luminance = base_.Luminance();
     Color tint = (luminance > 0.f) ? base_ / luminance : Color(1.f, 1.f, 1.f);
-    Color spec = RMth::lerp<Color>(RMth::lerp<Color>(one, tint, spec_tint_) * 0.8f * spec_ , base_, metal_);
+    Color spec = cblt::lerp<Color>(cblt::lerp<Color>(one, tint, spec_tint_) * 0.8f * spec_ , base_, metal_);
 
     float alpha_x, alpha_y;
     GetAnisoParams(alpha_x, alpha_y);
@@ -136,7 +136,7 @@ Color DisneyPrincipledMaterial::DisneySpecular(const Vec3 &incoming, const Vec3 
     //float D_s = RMth::GGX(n_dot_h, alpha_x);
     //float G_s = RMth::SmithPartialGeom(incoming, halfway, alpha_x) * 
     //            RMth::SmithPartialGeom(outgoing, halfway, alpha_x);
-    Color F_s = RMth::lerp<Color>(spec, one, 1.f);
+    Color F_s = cblt::lerp<Color>(spec, one, 1.f);
     return F_s * D_s * G_s / (4.f * n_dot_i * n_dot_o);
 }
 
@@ -153,7 +153,7 @@ Color DisneyPrincipledMaterial::DisneyClearcoat(const Vec3 &incoming, const Vec3
     float fresnel_i = RMth::FresnelSchlick(0.f, n_dot_i);
     float fresnel_o = RMth::FresnelSchlick(0.f, n_dot_o);
 
-    float D_cc = RMth::GTR1(n_dot_h, RMth::lerp<float>(.1f, .001f, rough_));
+    float D_cc = RMth::GTR1(n_dot_h, cblt::lerp<float>(.1f, .001f, rough_));
     float G_cc = RMth::GGX(n_dot_i, .25f) * RMth::GGX(n_dot_o, .25f);
     float F_cc = RMth::FresnelSchlick(.04f, h_dot_i);
 
@@ -168,6 +168,6 @@ Color DisneyPrincipledMaterial::Emittance()
 void DisneyPrincipledMaterial::GetAnisoParams(float &a_x, float &a_y)
 {
     float aspect = std::sqrt(1.f - 0.9f * aniso_);
-    a_x = std::max(.0001f, RMth::sqr(rough_) / aspect);
-    a_y = std::max(.0001f, RMth::sqr(rough_) * aspect);
+    a_x = std::max(.0001f, cblt::sqr(rough_) / aspect);
+    a_y = std::max(.0001f, cblt::sqr(rough_) * aspect);
 }

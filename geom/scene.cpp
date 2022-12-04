@@ -2,8 +2,10 @@
 
 namespace cblt
 {
-    Scene::Scene(std::vector<std::shared_ptr<ScenePrim>> &prims)
+    Scene::Scene(const Camera &camera, std::vector<std::shared_ptr<ScenePrim>> &prims)
     {
+        cam_ = camera;
+        
         prims_ = prims;
         accel_ = BoundingVolume<ScenePrim>(prims);
         // TODO - materials

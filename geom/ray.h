@@ -2,7 +2,7 @@
 #define CBLT_RAY_H
 
 #include "math/vec.h"
-
+#include "math/constants.h"
 namespace cblt
 {
     struct Ray
@@ -15,7 +15,7 @@ namespace cblt
         {
             pos = _pos;
             dir = _dir;
-            inv = Vec3(1.0f / dir.x, 1.0f / dir.y, 1.0f / dir.z);
+            inv = Vec3(1.0f / (dir.x + eps_zero_F), 1.0f / (dir.y + eps_zero_F), 1.0f / (dir.z + eps_zero_F));
         }
     };
 }

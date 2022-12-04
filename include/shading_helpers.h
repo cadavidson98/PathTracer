@@ -1,7 +1,8 @@
 #ifndef SHADE_HELPERS
 #define SHADE_HELPERS
 
-#include "math_helpers.h"
+#include "math/math_helpers.h"
+#include "math/constants.h"
 #include <algorithm>
 #include <cmath>
 
@@ -11,11 +12,11 @@ namespace RMth {
     {
         if (alpha >= 1.f)
         {
-            return 1.f / PI_f;
+            return 1.f / cblt::PI_f;
         }
-        float alpha_sqr = sqr(alpha);
+        float alpha_sqr = cblt::sqr(alpha);
         float a_sqr_minus_1 = alpha_sqr - 1.f;
-        return a_sqr_minus_1 / ((PI_f * std::log(alpha_sqr)) * (1.f + a_sqr_minus_1 * sqr(cos_theta)));
+        return a_sqr_minus_1 / ((cblt::PI_f * std::log(alpha_sqr)) * (1.f + a_sqr_minus_1 * cblt::sqr(cos_theta)));
     }
     
     inline float GGX(float cos_theta, float alpha)
@@ -23,14 +24,14 @@ namespace RMth {
         float cos_sqr = cos_theta * cos_theta;
         float rough_sqr = alpha * alpha;
         float denom = cos_sqr * (rough_sqr - 1.f) + 1.f;
-        return rough_sqr / (RMth::PI_f * denom * denom);
+        return rough_sqr / (cblt::PI_f * denom * denom);
     }
 
     inline float GGX_aniso(float alpha_x, float alpha_y, float cos_phi, float sin_phi, float cos_theta)
     {
-        float A = sqr(cos_phi / alpha_x) + sqr(sin_phi / alpha_y);
-        float denom = PI_f * alpha_x * alpha_y * sqr(sqr(cos_theta)*(1.f - A) + A);
-        float tan_sqr = (1.f - sqr(cos_theta)) / sqr(cos_theta);
+        float A = cblt::sqr(cos_phi / alpha_x) + cblt::sqr(sin_phi / alpha_y);
+        float denom = cblt::PI_f * alpha_x * alpha_y * cblt::sqr(cblt::sqr(cos_theta)*(1.f - A) + A);
+        float tan_sqr = (1.f - cblt::sqr(cos_theta)) / cblt::sqr(cos_theta);
         //float ref = PI_f * alpha_x * alpha_y * sqr(sqr(cos_theta)) * sqr(1.f + tan_sqr * (A));
         return 1.f / denom;
     }
@@ -42,13 +43,13 @@ namespace RMth {
         float n_dot_o = omega_o.Dot(norm);
 
         // masking
-        float sin_cos_aniso = sqr(omega_i.Dot(X) * alpha_x) + sqr(omega_i.Dot(Y) * alpha_y);
-        float tan_sqr = (1.f - sqr(n_dot_i)) / (sqr(n_dot_i));
+        float sin_cos_aniso = cblt::sqr(omega_i.Dot(X) * alpha_x) + cblt::sqr(omega_i.Dot(Y) * alpha_y);
+        float tan_sqr = (1.f - cblt::sqr(n_dot_i)) / (cblt::sqr(n_dot_i));
         float lambda_i = std::sqrt(1.f + sin_cos_aniso * tan_sqr);
 
         // shadowing
-        sin_cos_aniso = sqr(omega_o.Dot(X) * alpha_x) + sqr(omega_o.Dot(Y) * alpha_y);
-        tan_sqr = (1.f - sqr(n_dot_o)) / (sqr(n_dot_o));
+        sin_cos_aniso = cblt::sqr(omega_o.Dot(X) * alpha_x) + cblt::sqr(omega_o.Dot(Y) * alpha_y);
+        tan_sqr = (1.f - cblt::sqr(n_dot_o)) / (cblt::sqr(n_dot_o));
         float lambda_o = std::sqrt(1.f + sin_cos_aniso * tan_sqr);
 
         return 2.0f / (lambda_i + lambda_o);
@@ -64,7 +65,7 @@ namespace RMth {
 
     inline float SmithPartialGeomAniso(float alpha_x, float alpha_y, float n_dot_v, float v_dot_x, float v_dot_y)
     {
-        float sin_cos_aniso = sqr(v_dot_x * alpha_x) + sqr(v_dot_y * alpha_y);
+        float sin_cos_aniso = cblt::sqr(v_dot_x * alpha_x) + cblt::sqr(v_dot_y * alpha_y);
         float tan_sqr = (1.f - n_dot_v * n_dot_v) / (n_dot_v * n_dot_v);
         float denom = 1.f + std::sqrt(1.f + sin_cos_aniso * tan_sqr);
         return 2.f / denom;

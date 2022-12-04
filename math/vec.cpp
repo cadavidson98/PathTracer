@@ -10,6 +10,14 @@ namespace cblt
         return Vec2(-x, -y);
     }
 
+    Vec2 operator *(const float &lhs, const Vec2& rhs) {
+        return Vec2(lhs * rhs.x, lhs * rhs.y);
+    }
+
+    Vec2 operator /(const float &lhs, const Vec2& rhs) {
+        return Vec2(lhs / rhs.x, lhs / rhs.y);
+    }
+
     Vec2 Vec2::operator /(const float& rhs) const {
         return Vec2(x / rhs, y / rhs);
     }
@@ -36,6 +44,14 @@ namespace cblt
 
     Vec3 Vec3::operator-() const {
         return Vec3(-x, -y, -z);
+    }
+
+    Vec3 operator /(const float& lhs, const Vec3& rhs) {
+        return Vec3(lhs / rhs.x, lhs / rhs.y, lhs / rhs.z);
+    }
+
+    Vec3 operator *(const float& lhs, const Vec3& rhs) {
+        return Vec3(lhs * rhs.x, lhs * rhs.y, lhs * rhs.z);
     }
 
     Vec3 Vec3::operator /(const float& rhs) const {
@@ -84,5 +100,13 @@ namespace cblt
     
     Vec4 Vec4::operator +(const Vec4& rhs) const {
         return Vec4(x + rhs.x, y + rhs.y, z + rhs.z, w + rhs.w);
+    }
+
+    Vec4 operator /(const float& lhs, const Vec4& rhs) {
+        return Vec4(lhs / rhs.x, lhs / rhs.y, lhs / rhs.z, lhs / rhs.w);
+    }
+
+    Vec4 operator *(const float& lhs, const Vec4& rhs) {
+        return Vec4(lhs * rhs.x, lhs * rhs.y, lhs * rhs.z, lhs * rhs.w);
     }
 }

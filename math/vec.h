@@ -11,6 +11,9 @@ namespace cblt {
             float x;
             float y;
 
+            Vec2 friend operator /(const float& lhs, const Vec2& rhs);
+            Vec2 friend operator *(const float& lhs, const Vec2& rhs);
+
             Vec2 operator -() const;
             Vec2 operator /(const float& rhs) const;
             Vec2 operator *(const float& rhs) const;
@@ -32,7 +35,7 @@ namespace cblt {
 
     inline Vec2 Normalize(const Vec2 &vec) {
         float len = Magnitude(vec);
-        return (vec / len);
+        return (vec / (len + 1e-6f));
     }
 
     class Vec3 {
@@ -44,6 +47,9 @@ namespace cblt {
             float x;
             float y;
             float z;
+
+            Vec3 friend operator /(const float& lhs, const Vec3& rhs);
+            Vec3 friend operator *(const float& lhs, const Vec3& rhs);
 
             Vec3 operator -() const;
             Vec3 operator /(const float& rhs) const;
@@ -72,7 +78,7 @@ namespace cblt {
 
     inline Vec3 Normalize(const Vec3 &vec) {
         float len = Magnitude(vec);
-        return (vec / len);
+        return (vec / (len + 1e-6f));
     }
 
     class Vec4 {
@@ -85,6 +91,9 @@ namespace cblt {
             float y;
             float z;
             float w;
+
+            Vec4 friend operator /(const float& lhs, const Vec4& rhs);
+            Vec4 friend operator *(const float& lhs, const Vec4& rhs);
 
             Vec4 operator -() const;
             Vec4 operator /(const float &rhs) const;
@@ -107,7 +116,7 @@ namespace cblt {
 
     inline Vec4 Normalize(const Vec4 &vec) {
         float len = Magnitude(vec);
-        return (vec / len);
+        return (vec / (len + 1e-6f));
     }
 }
 
