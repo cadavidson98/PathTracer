@@ -1,6 +1,7 @@
 #include "legacy_file_loader.h"
-#include "cook_torrence.h"
-#include "disney_principled.h"
+
+#include "mat/cook_torrence.h"
+#include "mat/disney_principled.h"
 
 #include "math/vec.h"
 #include "math/constants.h"
@@ -22,12 +23,11 @@ std::shared_ptr<cblt::Scene> LegacyFileLoader::LoadScene(std::string file_name) 
     // text-based OBJ style, can process line-by-line
     // The default material is a matte white
     int num_mats = 1;
-    Material *cur_mat = new CookTorrenceMaterial(
+    std::shared_ptr<cblt::Material> cur_mat = std::make_unique<cblt::CookTorrenceMaterial>(
             Color(1.f, 1.f, 1.f), 
             Color(1.f, 1.f, 1.f), 
             Color(0.f, 0.f, 0.f),
             1.f, 1.f, 0.0f);
-    //new_scene->mats_["matte white"] = cur_mat;
     std::vector<std::shared_ptr<cblt::Triangle>> tris;
     std::vector<cblt::Vec3> verts;
     std::vector<cblt::Vec3> norms;
@@ -65,14 +65,12 @@ std::shared_ptr<cblt::Scene> LegacyFileLoader::LoadScene(std::string file_name) 
                     >> ior >> rough >> metal;
             if (emissive.r + emissive.g + emissive.b > 0.f || metal == 0.f)
             {
-                cur_mat = new CookTorrenceMaterial(albedo, specular, emissive, ior, rough, metal);
+                cur_mat = std::make_unique<cblt::CookTorrenceMaterial>(albedo, specular, emissive, ior, rough, metal);
             }
             else
             {
-                cur_mat = new DisneyPrincipledMaterial(Color(albedo.r, albedo.g, albedo.b), 0.f, metal, 0.f, 0.f, rough, 1.f, 0.f, 0.f, 0.f, 0.f);
-            }
-            
-            //new_scene->mats_["Material " + std::to_string(num_mats++)] = cur_mat;
+                cur_mat = std::make_unique<cblt::DisneyPrincipledMaterial>(Color(albedo.r, albedo.g, albedo.b), 0.f, metal, 0.f, 0.f, rough, 1.f, 0.f, 0.f, 0.f, 0.f);
+            }            
         }
         else if (!command.compare("max_vertices:")) {
             in_file >> max_vert;
@@ -104,7 +102,7 @@ std::shared_ptr<cblt::Scene> LegacyFileLoader::LoadScene(std::string file_name) 
                 continue;
             }
             // Find the corresponding vertices in the vertex array and add them to the triangle
-            tris.push_back(std::make_shared<cblt::Triangle>(verts[p1], verts[p2], verts[p3]));
+            tris.push_back(std::make_shared<cblt::Triangle>(verts[p1], verts[p2], verts[p3], cur_mat));
             //new_tri.mat_ = cur_mat;
         }
         else if (!command.compare("normal_triangle:")) {
@@ -115,7 +113,7 @@ std::shared_ptr<cblt::Scene> LegacyFileLoader::LoadScene(std::string file_name) 
                 continue;
             }
             //new_tri.mat_ = cur_mat;
-            tris.push_back(std::make_shared<cblt::Triangle>(verts[p1], verts[p2], verts[p3], norms[n1], norms[n2], norms[n3]));
+            tris.push_back(std::make_shared<cblt::Triangle>(verts[p1], verts[p2], verts[p3], norms[n1], norms[n2], norms[n3], cur_mat));
         }
         /*else if (!command.compare("point_light:")) {
             Vec4 pos(0.f, 0.f, 0.f, 1.f);

@@ -11,9 +11,6 @@
 #include "config.h"
 #include "camera.h"
 #include "image_lib.h"
-#include "structs.h"
-#include "collision.h"
-#include "assimp_file_loader.h"
 #include "legacy_file_loader.h"
 #include "ray_tracer.h"
 
@@ -21,7 +18,7 @@ int main(int argc, char* argv[]) {
     std::string file_name = std::string(DEBUG_DIR) + '/'; 
     std::string out_name("exporter_test.png");
     if(argc < 2) {
-        file_name += "dragon_only.txt";
+        file_name += "dragonEmissive.txt";
     }
     else if (argc < 3) {
         file_name += argv[1];
@@ -39,8 +36,8 @@ int main(int argc, char* argv[]) {
         my_scene = file_loader.LoadScene(file_name);
     }
     else {
-        AssimpFileLoader file_loader;
-        my_scene = file_loader.LoadScene(file_name);
+        //AssimpFileLoader file_loader;
+        //my_scene = file_loader.LoadScene(file_name);
     }
     int width(1280), height(720);
     int half_width = width >> 1;

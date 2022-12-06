@@ -10,7 +10,7 @@ namespace cblt {
 		
 	};
 
-    Triangle::Triangle(const Vec3 &p1, const Vec3 &p2, const Vec3 &p3) :
+    Triangle::Triangle(const Vec3 &p1, const Vec3 &p2, const Vec3 &p3, std::shared_ptr<Material> &mat) :
     pos1_(p1), pos2_(p2), pos3_(p3) {
         use_vertex_norms_ = use_vertex_uvs_ = false;
         // calculate the per-face normal
@@ -19,10 +19,11 @@ namespace cblt {
         face_norm_ = Cross(v1, v2);
         face_norm_len_ = Magnitude(face_norm_);
         face_norm_ = Normalize(face_norm_);
+		mat_ = mat; 
     }
 
     Triangle::Triangle(const Vec3 &p1, const Vec3 &p2, const Vec3 &p3, 
-                       const Vec3 &n1, const Vec3 &n2, const Vec3 &n3) :
+                       const Vec3 &n1, const Vec3 &n2, const Vec3 &n3, std::shared_ptr<Material> &mat) :
     pos1_(p1), pos2_(p2), pos3_(p3), norm1_(n1), norm2_(n2), norm3_(n3) {
         use_vertex_norms_ = true;
         use_vertex_uvs_ = false;
@@ -32,11 +33,12 @@ namespace cblt {
         face_norm_ = Cross(v1, v2);
         face_norm_len_ = Magnitude(face_norm_);
         face_norm_ = Normalize(face_norm_);
+		mat_ = mat;
     }
 
     Triangle::Triangle(const Vec3 &p1, const Vec3 &p2, const Vec3 &p3, 
                       const Vec3 &n1, const Vec3 &n2, const Vec3 &n3,
-                      const Vec2 &uv1, const Vec2 &uv2, const Vec2 &uv3) :
+                      const Vec2 &uv1, const Vec2 &uv2, const Vec2 &uv3, std::shared_ptr<Material> &mat) :
     pos1_(p1), pos2_(p2), pos3_(p3), 
     norm1_(n1), norm2_(n2), norm3_(n3),
     uv1_(uv1), uv2_(uv2), uv3_(uv3) {
@@ -47,6 +49,7 @@ namespace cblt {
         face_norm_ = Cross(v1, v2);
         face_norm_len_ = Magnitude(face_norm_);
         face_norm_ = Normalize(face_norm_);
+		mat_ = mat;
     }
 
     bool Triangle::Intersect(const Ray &ray, HitInfo &collision_pt) {
@@ -81,9 +84,13 @@ namespace cblt {
     	
     	    if (use_vertex_norms_) {
                 collision_pt.norm = norm1_ * a + norm2_ * b + norm3_ * c;
+				collision_pt.norm = Normalize(collision_pt.norm);
             }
+			else {
+				collision_pt.norm = face_norm_;
+			}
     	
-    	    // hit.m = tri.mat_;
+    	    collision_pt.m = mat_;
     	    Vec2 uv = uv1_ * a + uv2_ * b + uv3_ * c;
     	    if (use_vertex_uvs_) {
     	        // change of basis
@@ -97,7 +104,7 @@ namespace cblt {
     	        tex_norm = TBN * tex_norm;
     	        hit.norm = Vec3(tex_norm.x, tex_norm.y, tex_norm.z);*/
     	    }
-		    collision_pt.norm = Normalize(collision_pt.norm);
+		    
     	    collision_pt.norm = (Dot(collision_pt.norm, ray.dir) > 0.f) ? -collision_pt.norm: collision_pt.norm;
 		    return true;
   	    }

@@ -24,5 +24,10 @@ namespace cblt {
         // Column Major
         float data_[16];
     };
+
+    // namespace functions that operate on matrices
+    Mat4 Inverse(const Mat4 &matrix);
+    Mat4 OrthoInverse(const Mat4 &matrix);
+    Mat4 Transpose(const Mat4 &matrix);
 }
 #endif  // MATH_MATRIX_H

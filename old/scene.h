@@ -4,8 +4,8 @@
 #include "bvh.h"
 #include "geom/camera.h"
 #include "structs.h"
-#include "image_lib.h"
-#include "Material.h"
+#include "mat/image_lib.h"
+#include "mat/Material.h"
 
 #include <memory>
 #include <vector>
@@ -23,7 +23,7 @@ class Scene {
 		cblt::Camera camera_;  //! The camera from when we render the scene
 		bvh scene_triangles_;  //! The triangles which describe the scene geometry
 		std::vector<Triangle> tris_;  //! Temporary location for all the triangles in the scene
-		std::unordered_map<std::string, Material*> mats_;  //! The materials which describe how light is reflected at each triangle
+		std::unordered_map<std::string, cblt::Material*> mats_;  //! The materials which describe how light is reflected at each triangle
 		std::vector<Image*> textures_;  //! the textures which cover some triangles
 };
 

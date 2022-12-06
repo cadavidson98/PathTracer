@@ -1,12 +1,13 @@
-#ifndef SHADE_HELPERS
-#define SHADE_HELPERS
+#ifndef CBLT_SHADE_HELPERS
+#define CBLT_SHADE_HELPERS
 
 #include "math/math_helpers.h"
 #include "math/constants.h"
 #include <algorithm>
 #include <cmath>
 
-namespace RMth {
+namespace cblt
+{
 
     inline float GTR1(float cos_theta, float alpha)
     {
@@ -39,16 +40,16 @@ namespace RMth {
     inline float SmithGeomAniso(const Vec3 &omega_i, const Vec3 &omega_o, const Vec3 &norm, 
                                 const Vec3 &X, const Vec3 &Y, const float alpha_x, const float alpha_y)
     {
-        float n_dot_i = omega_i.Dot(norm);
-        float n_dot_o = omega_o.Dot(norm);
+        float n_dot_i = Dot(omega_i, norm);
+        float n_dot_o = Dot(omega_o, norm);
 
         // masking
-        float sin_cos_aniso = cblt::sqr(omega_i.Dot(X) * alpha_x) + cblt::sqr(omega_i.Dot(Y) * alpha_y);
+        float sin_cos_aniso = cblt::sqr(Dot(omega_i, X) * alpha_x) + cblt::sqr(Dot(omega_i, Y) * alpha_y);
         float tan_sqr = (1.f - cblt::sqr(n_dot_i)) / (cblt::sqr(n_dot_i));
         float lambda_i = std::sqrt(1.f + sin_cos_aniso * tan_sqr);
 
         // shadowing
-        sin_cos_aniso = cblt::sqr(omega_o.Dot(X) * alpha_x) + cblt::sqr(omega_o.Dot(Y) * alpha_y);
+        sin_cos_aniso = cblt::sqr(Dot(omega_o, X) * alpha_x) + cblt::sqr(Dot(omega_o, Y) * alpha_y);
         tan_sqr = (1.f - cblt::sqr(n_dot_o)) / (cblt::sqr(n_dot_o));
         float lambda_o = std::sqrt(1.f + sin_cos_aniso * tan_sqr);
 
@@ -57,7 +58,7 @@ namespace RMth {
 
     inline float SmithPartialGeom(const Vec3 &omega, const Vec3 &halfway, float alpha)
     {
-        float w_dot_h = std::max(omega.Dot(halfway), 0.f);
+        float w_dot_h = std::max(Dot(omega, halfway), 0.f);
     
         float tan_sqr = (1.f - w_dot_h * w_dot_h) / (w_dot_h * w_dot_h);
         return 2.f / (1.f + std::sqrt(1.f + alpha * alpha * tan_sqr));
@@ -86,4 +87,4 @@ namespace RMth {
     }
 }
 
-#endif
+#endif  // CBLT_SHADE_HELPERS

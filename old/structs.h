@@ -4,7 +4,7 @@
 #include <vector>
 #include <utility>
 #include <algorithm>
-#include "material.h"
+#include "mat/material.h"
 #include "vec.h"
 
 class Material;
@@ -40,7 +40,7 @@ struct Triangle {
     Vec2 uv3_;
     
     //! The triangle material
-    Material *mat_;
+    cblt::Material *mat_;
 };
 
 /**

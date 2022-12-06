@@ -36,6 +36,7 @@ namespace cblt
         Ray local_ray = TransformRay(ray);
         // intersect againt the model in its local reference frame
         HitInfo local_hit;
+        local_hit.hit_time = inf_F;
         bool hit = model_->Intersect(local_ray, local_hit);
         if (hit)
         {
@@ -46,6 +47,7 @@ namespace cblt
             collision_pt.norm = Vec3(world_norm.x, world_norm.y, world_norm.z);
             collision_pt.shading_basis = local_hit.shading_basis * world_to_local_;
             collision_pt.hit_time = Magnitude(ray.pos - collision_pt.pos);
+            collision_pt.m = local_hit.m;
             return true;
         }
         else

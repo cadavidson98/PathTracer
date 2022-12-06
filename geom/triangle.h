@@ -3,6 +3,9 @@
 
 #include "geometry.h"
 #include "math/vec.h"
+#include "mat/material.h"
+
+#include <memory>
 
 namespace cblt
 {
@@ -10,12 +13,12 @@ namespace cblt
     {
         public:
             Triangle();
-            Triangle(const Vec3 &p1, const Vec3 &p2, const Vec3 &p3);
+            Triangle(const Vec3 &p1, const Vec3 &p2, const Vec3 &p3, std::shared_ptr<Material> &mat);
             Triangle(const Vec3 &p1, const Vec3 &p2, const Vec3 &p3, 
-                     const Vec3 &n1, const Vec3 &n2, const Vec3 &n3);
+                     const Vec3 &n1, const Vec3 &n2, const Vec3 &n3, std::shared_ptr<Material> &mat);
             Triangle(const Vec3 &p1, const Vec3 &p2, const Vec3 &p3, 
                      const Vec3 &n1, const Vec3 &n2, const Vec3 &n3,
-                     const Vec2 &uv1, const Vec2 &uv2, const Vec2 &uv3);
+                     const Vec2 &uv1, const Vec2 &uv2, const Vec2 &uv3, std::shared_ptr<Material> &mat);
             bool Intersect(const Ray &ray, HitInfo &collision_pt) override;
             BoundingBox GetBounds() override;
         private:
@@ -38,6 +41,9 @@ namespace cblt
             Vec2 uv1_;
             Vec2 uv2_;
             Vec2 uv3_;
+
+            // material
+            std::shared_ptr<Material> mat_;
     };
 }
 

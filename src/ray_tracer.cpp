@@ -7,14 +7,14 @@
 #include "math/math_helpers.h"
 #include "math/constants.h"
 
-#include "collision.h"
-#include "random_sampler.h"
-#include "sobol2D.h"
+#include "mat/material.h"
+#include "mat/random_sampler.h"
+#include "mat/sobol2D.h"
 
 RayTracer::RayTracer(shared_ptr<cblt::Scene> &scene_data) {
     image_scene_ = scene_data;
     max_depth_ = 8;
-    num_samples_ = 32;
+    num_samples_ = 16;
 }
 
 RayTracer::~RayTracer() {
@@ -33,22 +33,21 @@ shared_ptr<Image> RayTracer::Render(int width, int height) {
     #pragma omp parallel
     #endif
     {
-        shared_ptr<Sampler2D> generator = std::make_shared<RandomSampler2D>(omp_get_thread_num() * 1234U);
+        shared_ptr<cblt::Sampler2D> generator = std::make_shared<cblt::RandomSampler2D>(omp_get_thread_num() * 1234U);
         #ifndef _DEBUG
         #pragma omp for schedule(guided)
         #endif
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {  
                 Color tot_clr(0, 0, 0);
-                float u = half_width - x;
-                float v = half_height - y;
-                cblt::Ray ray = image_scene_->cam_.CreateRay(u, v);
-                cblt::HitInfo hit;
-                hit.hit_time = cblt::inf_F;
-                tot_clr = SceneIntersect(ray, hit) ? Color(1,1,1) : Color(0,0,0);
-                /*for (int i = 1; i <= num_samples_; i++) {
+                //float u = half_width - x;
+                //float v = half_height - y;
+                //cblt::Ray ray = image_scene_->cam_.CreateRay(u, v);
+                //cblt::HitInfo hit;
+                //hit.hit_time = cblt::inf_F;
+                //tot_clr = SceneIntersect(ray, hit) ? Color(1,1,1) : Color(0,0,0);
+                for (int i = 1; i <= num_samples_; i++) {
                     float jitter_x, jitter_y;
-                    Color path_throughput(1.f, 1.f, 1.f);
                     generator->NextSample(jitter_x, jitter_y);
                 
                     float u = half_width - (x + jitter_x);
@@ -56,9 +55,8 @@ shared_ptr<Image> RayTracer::Render(int width, int height) {
 
                     cblt::Ray ray = image_scene_->cam_.CreateRay(u, v);
                     tot_clr = tot_clr + PathTraceIterative(ray, generator);
-                    //tot_clr = tot_clr + RayCast(ray, generator);
-                
-                tot_clr = tot_clr * frac;*/
+                }
+                tot_clr = tot_clr * frac;
                 // Reihard Tone Map
                 Color hdr = tot_clr / (Color(1.f, 1.f, 1.f) + tot_clr);
                 result->setPixel(x, y, Color(std::pow(hdr.r, 1.f/2.2f), std::pow(hdr.g, 1.f/2.2f), std::pow(hdr.b, 1.f/2.2f)));
@@ -152,15 +150,16 @@ Color RayTracer::PathTrace(Ray ray, int depth, shared_ptr<Sampler2D> generator, 
     }
     return tot_color;
 }
-
-Color RayTracer::PathTraceIterative(Ray cam_ray, shared_ptr<Sampler2D> generator)
+*/
+Color RayTracer::PathTraceIterative(cblt::Ray cam_ray, shared_ptr<cblt::Sampler2D> &generator)
 {
     Color tot_light(0.f, 0.f, 0.f), throughput(1.f, 1.f, 1.f);
-    Ray path_ray = cam_ray;
+    cblt::Ray path_ray = cam_ray;
     bool specular_bounce(false);
     for (int depth = 0; depth < max_depth_; ++depth) {
         // intersect scene
-        HitInfo scene_pt;
+        cblt::HitInfo scene_pt;
+        scene_pt.hit_time = cblt::inf_F;
         bool hit = SceneIntersect(path_ray, scene_pt);
         
         if (!hit) {
@@ -170,15 +169,15 @@ Color RayTracer::PathTraceIterative(Ray cam_ray, shared_ptr<Sampler2D> generator
         tot_light = tot_light + throughput * scene_pt.m->Emittance();
 
         // sample BRDF at point to determine how light is transmitted to the next point on the path
-        Vec3 incoming;
+        cblt::Vec3 incoming;
         float pdf;
         Color f = scene_pt.m->Sample(-path_ray.dir, incoming, pdf, scene_pt, generator);
-        if (f.r + f.g + f.b < .0001f) {
+        if (f.r + f.g + f.b < cblt::eps_zero_F) {
             break;
         }
-        float cos_theta = scene_pt.norm.Dot(incoming);
+        float cos_theta = cblt::Dot(scene_pt.norm, incoming);
         throughput = throughput * f * std::abs(cos_theta) / pdf;
-        path_ray = Ray(scene_pt.pos + incoming * .0001f, incoming);
+        path_ray = cblt::Ray(scene_pt.pos + incoming * .0001f, incoming);
 
         // russian roulette
         if (depth > 3) {
@@ -193,7 +192,7 @@ Color RayTracer::PathTraceIterative(Ray cam_ray, shared_ptr<Sampler2D> generator
     }
     return tot_light;
 }
-
+/*
 Color RayTracer::SampleLights(const Ray &incoming, const HitInfo &surface, shared_ptr<Sampler2D> generator) {
     int idx = rand() % static_cast<int>(image_scene_->lights_.size());
     Light *light = image_scene_->lights_[idx];
