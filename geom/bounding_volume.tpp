@@ -319,7 +319,7 @@ namespace cblt {
      */
     template <class T>
     bool BoundingVolume<T>::IntersectIterative(const Ray &ray, HitInfo &hit) {
-        std::stack<int> nodes;
+        std::stack<int, std::vector<int>> nodes;
         nodes.push(0);
         float best_time = inf_F;
         bool result = false;

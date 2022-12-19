@@ -69,7 +69,8 @@ std::shared_ptr<cblt::Scene> LegacyFileLoader::LoadScene(std::string file_name) 
             }
             else
             {
-                cur_mat = std::make_unique<cblt::DisneyPrincipledMaterial>(Color(albedo.r, albedo.g, albedo.b), 0.f, metal, 0.f, 0.f, rough, 1.f, 0.f, 0.f, 0.f, 0.f);
+                Color base(albedo.r, albedo.g, albedo.b);
+                cur_mat = std::make_unique<cblt::DisneyPrincipledMaterial>(base, 0.f, metal, 0.f, 0.f, rough, 1.f, 0.f, 0.f, 0.f, 0.f);
             }            
         }
         else if (!command.compare("max_vertices:")) {

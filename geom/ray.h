@@ -11,7 +11,7 @@ namespace cblt
         Vec3 dir;
         Vec3 inv;
         Ray() {};
-        Ray(Vec3 &_pos, Vec3 &_dir)
+        Ray(Vec3 _pos, Vec3 _dir)
         {
             pos = _pos;
             dir = _dir;

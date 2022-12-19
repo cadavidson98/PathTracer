@@ -2,23 +2,20 @@
 #include <iostream>
 #include <chrono>
 
-#include <assimp/Importer.hpp>      // C++ importer interface
-#include <assimp/scene.h>           // Output data structure
-#include <assimp/postprocess.h>     // Post processing flags
-
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "config.h"
 #include "camera.h"
 #include "image_lib.h"
 #include "legacy_file_loader.h"
+#include "sdesc_file_loader.h"
 #include "ray_tracer.h"
 
 int main(int argc, char* argv[]) {
     std::string file_name = std::string(DEBUG_DIR) + '/'; 
     std::string out_name("exporter_test.png");
     if(argc < 2) {
-        file_name += "dragonEmissive.txt";
+        file_name += "dragon_test.sdesc";
     }
     else if (argc < 3) {
         file_name += argv[1];
@@ -33,6 +30,11 @@ int main(int argc, char* argv[]) {
         // legacy files from CSCI 5607 format
         std::cout << "Legacy format detected\n";
         LegacyFileLoader file_loader;
+        my_scene = file_loader.LoadScene(file_name);
+    }
+    else if (file_name.find(".sdesc") != std::string::npos) {
+        std::cout << "SDesc format detected\n";
+        SDescFileLoader file_loader;
         my_scene = file_loader.LoadScene(file_name);
     }
     else {

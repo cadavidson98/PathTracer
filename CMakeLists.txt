@@ -36,13 +36,14 @@ set(ASSIMP_BUILD_COLLADA_IMPORTER TRUE CACHE BOOL "x" FORCE)
 set(ASSIMP_BUILD_OBJ_IMPORTER TRUE CACHE BOOL "x" FORCE)
 set(ASSIMP_BUILD_FBX_IMPORTER TRUE CACHE BOOL "x" FORCE)
 set(ASSIMP_BUILD_BLEND_IMPORTER TRUE CACHE BOOL "x" FORCE)
-add_subdirectory(extern/assimp)
+#add_subdirectory(extern/assimp)
 add_subdirectory(extern/stbimage)
+add_subdirectory(extern/pugixml)
 
 find_package(OpenMP)
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR} include ${MATH_DIR} ${GEOM_DIR} ${MAT_DIR})
-target_link_libraries(${PROJECT_NAME} stbimage assimp OpenMP::OpenMP_CXX)
+target_link_libraries(${PROJECT_NAME} stbimage OpenMP::OpenMP_CXX pugixml)
 
 #target_include_directories(${TEST_NAME} PUBLIC ${CMAKE_SOURCE_DIR} include ${MATH_DIR} ${GEOM_DIR} ${MAT_DIR})
 #target_link_libraries(${TEST_NAME} stbimage assimp OpenMP::OpenMP_CXX)
