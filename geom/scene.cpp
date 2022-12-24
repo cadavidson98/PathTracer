@@ -8,7 +8,7 @@ namespace cblt
         
         prims_ = prims;
         accel_ = BoundingVolume<ScenePrim>(prims);
-        // TODO - materials
+        // TODO - materials: Should the pointers also be held here, or just in the primitives?
     }
 
     void Scene::AddPrim(const std::shared_ptr<ScenePrim> &prim)

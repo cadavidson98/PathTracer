@@ -12,7 +12,7 @@ namespace cblt
             float clearcoat, float clearcoat_gloss);
 
         Color Sample(const Vec3 &incoming, Vec3 &outgoing, float &pdf, const HitInfo &collisionPt, std::shared_ptr<Sampler2D> &BRDF_sampler) override;
-        Color BRDF(const Vec3 &incoming, const Vec3 &outgoing, const HitInfo &collision_pt) override;
+        Color BRDF(const Vec3 &incoming, const Vec3 &outgoing, const HitInfo &collision_pt, float &pdf) override;
         Color Emittance() override;
     private:
         Color base_;
@@ -29,9 +29,11 @@ namespace cblt
 
         void GetAnisoParams(float &a_x, float &a_y);
 
-        Color DisneyDiffuse(const Vec3 &incoming, const Vec3 &outgoing, const HitInfo &collision_pt);
-        Color DisneySpecular(const Vec3 &incoming, const Vec3 &outgoing, const HitInfo &collision_pt);
-        Color DisneyClearcoat(const Vec3 &incoming, const Vec3 &outgoing, const HitInfo &collision_pt);
+        Color DisneyDiffuse(const Vec3 &incoming, const Vec3 &outgoing, const HitInfo &collision_pt, float &pdf);
+        Color DisneySpecular(const Vec3 &incoming, const Vec3 &outgoing, const HitInfo &collision_pt, float &pdf);
+        Color DisneyClearcoat(const Vec3 &incoming, const Vec3 &outgoing, const HitInfo &collision_pt, float &pdf);
+        Color DisneySheen(const Vec3 &incoming, const Vec3 &outgoing, const HitInfo &collision_pt);
+        Color DisneyTransmission(const Vec3 &incoming, const Vec3 &outgoing, const HitInfo &collision_pt);
     };
 }
 #endif  // CBLT_DISNEY_PRINCIPLED_H

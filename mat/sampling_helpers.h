@@ -37,6 +37,45 @@ namespace cblt
         return result;
     }
 
+    inline Vec3 RandomUnitVectorInGTR1(const Vec3 &bitangent, const Vec3 &normal, const Vec3 &tangent, const Vec3 &outgoing,
+                                       const float alpha, float &pdf, const float u1, const float u2)
+    {
+        Mat4 Tan_To_World(Vec4(bitangent, 0.f), Vec4(normal, 0.f), Vec4(tangent, 0.f), Vec4(0.f, 0.f, 0.f, 1.f));
+        Mat4 World_To_Tan = Inverse(Tan_To_World);
+        Vec4 out_tan = World_To_Tan * Vec4(outgoing, 0.f);
+        Vec3 w_o = { out_tan.x, out_tan.y, out_tan.z };
+
+        float alpha_sqr = sqr(alpha);
+        float cos_theta = std::sqrt((1.f - std::pow(alpha_sqr, 1.f - u1)) / (1.f - alpha_sqr));
+        float sin_theta = std::sqrt(1.f - sqr(cos_theta));
+
+        float phi = 2.f * cblt::PI_f * u2;
+        Vec3 sample = { sin_theta * std::cos(phi),
+                        cos_theta,
+                        sin_theta * std::sin(phi) };
+
+        sample = Normalize(sample);
+
+        float O_dot_S = Dot(w_o, sample);
+        float O_dot_N = Dot(w_o, Y_axis_F);
+        float S_dot_N = Dot(sample, Y_axis_F);
+        
+        if (O_dot_N * S_dot_N < 0.f) {
+            sample = -sample;
+            O_dot_S = -O_dot_S;
+        }
+
+        Vec3 w_i = Normalize(2.f * O_dot_S * sample - w_o);
+
+        // calculate the pdf for the reflection vector in cartesian coords
+        pdf = GTR1(cos_theta, alpha) * cos_theta / (4.f * O_dot_S);
+    
+        // take back from tangent space to world space
+        Vec4 out_vec = Tan_To_World * Vec4(w_i, 0.f);
+        Vec3 result = { out_vec.x, out_vec.y, out_vec.z };
+        return Normalize(result);
+    }
+
     // Adapted from https://schuttejoe.github.io/post/ggximportancesamplingpart1/
     inline Vec3 RandomUnitVectorInGGX(const Vec3 &bitangent, const Vec3 &normal, const Vec3 &tangent, const Vec3 &outgoing, 
                                       const float alpha, float &pdf, const float u1, const float u2) {

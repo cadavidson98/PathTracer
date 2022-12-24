@@ -1,4 +1,5 @@
 #include "scene_prim.h"
+#include "mat/shading_helpers.h"
 
 namespace cblt
 {
@@ -51,6 +52,11 @@ namespace cblt
             collision_pt.shading_basis = local_hit.shading_basis * world_to_local_;
             collision_pt.hit_time = Magnitude(ray.pos - collision_pt.pos);
             collision_pt.m = local_hit.m;
+
+            // make orthonormal basis for shading
+            Vec3 tan, bitan;
+            OrthonormalBasis(collision_pt.norm, tan, bitan);
+            collision_pt.shading_basis = Mat4(Vec4(tan, 1.f), Vec4(collision_pt.norm, 1.f), Vec4(bitan, 1.f), Vec4(0.f, 0.f, 0.f, 1.f)); 
             return true;
         }
         else

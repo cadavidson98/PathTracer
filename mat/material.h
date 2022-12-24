@@ -27,7 +27,7 @@ namespace cblt
          * \param outgoing Vector which defines the outgoing direction towards the camera eye
          */ 
         virtual Color Sample(const Vec3 &incoming, Vec3 &outgoing, float &pdf, const HitInfo &collisionPt, std::shared_ptr<Sampler2D> &BRDF_sampler) = 0;
-        virtual Color BRDF(const Vec3 &incoming, const Vec3 &outgoing, const HitInfo &collision_pt) = 0;
+        virtual Color BRDF(const Vec3 &incoming, const Vec3 &outgoing, const HitInfo &collision_pt, float &pdf) = 0;
         virtual Color Emittance() = 0;
 
         Image *albedo_map_ = nullptr;  //! Optional albedo texture for better rendering

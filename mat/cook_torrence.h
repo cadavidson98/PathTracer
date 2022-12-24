@@ -11,7 +11,7 @@ namespace cblt
         CookTorrenceMaterial(Color albedo, Color specular, Color emissive, float ior, float rough_, float metal);
 
         Color Sample(const Vec3 &incoming, Vec3 &outgoing, float &pdf, const HitInfo &collisionPt, std::shared_ptr<Sampler2D> &BRDF_sampler);
-        Color BRDF(const Vec3 &incoming, const Vec3 &outgoing, const HitInfo &collision_pt);
+        Color BRDF(const Vec3 &incoming, const Vec3 &outgoing, const HitInfo &collision_pt, float &pdf);
         Color Emittance();
     private:
 

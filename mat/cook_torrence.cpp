@@ -26,12 +26,14 @@ namespace cblt
         Vec3 bitangent, tangent;
         OrthonormalBasis(collisionPt.norm, bitangent, tangent);
 
+        float foobar;
+
         if(x <= percent_diffuse) {
             // lambertian diffuse BTDF with cosine weighted sampling
             // start by finding a random outgoing direction
             RandomUnitVectorInHemisphere(bitangent, collisionPt.norm, tangent, incoming, BRDF_sampler);
             pdf = Dot(collisionPt.norm, incoming) * lambertian_pdf_;
-            return BRDF(incoming, outgoing, collisionPt) / percent_diffuse;
+            return BRDF(incoming, outgoing, collisionPt, foobar) / percent_diffuse;
         }
         else {
             // specular
@@ -41,7 +43,7 @@ namespace cblt
                 return Color::GreyScale(0.f);
             }
             else {
-                return BRDF(incoming, outgoing, collisionPt) / percent_spec;
+                return BRDF(incoming, outgoing, collisionPt, foobar) / percent_spec;
             }
         }
     }
@@ -49,7 +51,7 @@ namespace cblt
     // nomenclature guide:
     // incoming -> omega_i -> toLight (L) -> The light arriving at this point
     // outgoing -> omega_o -> toEye (V) -> The light reflected at this point
-    Color CookTorrenceMaterial::BRDF(const Vec3 &incoming, const Vec3 &outgoing, const HitInfo &collision_pt) {
+    Color CookTorrenceMaterial::BRDF(const Vec3 &incoming, const Vec3 &outgoing, const HitInfo &collision_pt, float &pdf) {
         // lambertian diffuse BTDF
         Color diffuse = (albedo_map_) ? albedo_map_->sample(collision_pt.uv.x, collision_pt.uv.y) : albedo_;
         diffuse = diffuse / (cblt::PI_f);
