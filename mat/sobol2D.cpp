@@ -9,8 +9,9 @@
 namespace cblt
 {
 
-    Sobol2D::Sobol2D(unsigned long x_0, unsigned long y_0) : 
-        sobol_x_n_(x_0), sobol_y_n_(y_0), sobol_n_(0) {
+    SobolSampler::SobolSampler(unsigned long x_0, unsigned long y_0) : 
+        sobol_x_n_(x_0), sobol_y_n_(y_0), sobol_n_(0)
+    {
     	sobol_max_ = std::pow(2.f, 32);
         // push back the initial values for the m_i recurrence relation
     	m_i_s_.push_back(0);
@@ -19,13 +20,19 @@ namespace cblt
         sobol_y_s_.push_back(sobol_y_n_);
     }
     
+    void SobolSampler::Next1D(float &x)
+    {
+        // TODO
+    }
+
     /**
      * @brief Find the next 2D sobol numbers in the sequence
      * 
      * @param x output for the next x number in the sequence
      * @param y output for the next y number in the sequence
      */
-    void Sobol2D::NextSample(float &x, float &y) {
+    void SobolSampler::Next2D(float &x, float &y)
+    {
         // find c, the index of the rightmost 0 in the binary representation
         // of index (1 indexed)
         unsigned long temp = sobol_n_;

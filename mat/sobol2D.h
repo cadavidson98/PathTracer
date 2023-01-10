@@ -11,12 +11,14 @@ namespace cblt
  	* a Quasi-Random sequence allows for faster convergence in Monte-Carlo methods. Sampler is built
  	* following Joe and Kuo's recurrence relation and directional numbers (https://epubs.siam.org/doi/10.1137/070709359)
  	*/
-	class Sobol2D : public Sampler2D {
-	public:
-		Sobol2D(unsigned long x_0 = 0, unsigned long y_0 = 0);
-		void NextSample(float& x, float& y);
-	private:
-
+	class SobolSampler : public Sampler
+	{
+		public:
+		SobolSampler(unsigned long x_0 = 0, unsigned long y_0 = 0);
+		void Next1D(float &x) override;
+		void Next2D(float& x, float& y) override;
+		
+		private:
 		float sobol_max_;  //! The maximum possible number this generator can create, used to max output from graycode to [0, 1]
 
 		unsigned long sobol_x_n_ = 0;  //! The current sobol number in the x dimension

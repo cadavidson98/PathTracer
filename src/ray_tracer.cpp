@@ -21,34 +21,28 @@ RayTracer::~RayTracer() {
 }
 
 shared_ptr<Image> RayTracer::Render(int width, int height) {
-    shared_ptr<Image> result(new Image(width, height));
+    shared_ptr<Image> result = std::make_shared<Image>(width, height);
     float half_width = width * .5f;
     float half_height = height * .5f;
     int size = width * height;
     
     float frac = 1.f / static_cast<float>(num_samples_);
     
-    omp_set_num_threads(12);
+    omp_set_num_threads(10);
     #ifndef _DEBUG
     #pragma omp parallel
     #endif
     {
-        shared_ptr<cblt::Sampler2D> generator = std::make_shared<cblt::RandomSampler2D>(omp_get_thread_num() * 1234U);
+        shared_ptr<cblt::Sampler> generator = std::make_shared<cblt::RandomSampler>(omp_get_thread_num() * 1234U);
         #ifndef _DEBUG
         #pragma omp for schedule(guided)
         #endif
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {  
                 Color tot_clr(0, 0, 0);
-                //float u = half_width - x;
-                //float v = half_height - y;
-                //cblt::Ray ray = image_scene_->cam_.CreateRay(u, v);
-                //cblt::HitInfo hit;
-                //hit.hit_time = cblt::inf_F;
-                //tot_clr = SceneIntersect(ray, hit) ? Color(1,1,1) : Color(0,0,0);
                 for (int i = 1; i <= num_samples_; i++) {
                     float jitter_x, jitter_y;
-                    generator->NextSample(jitter_x, jitter_y);
+                    generator->Next2D(jitter_x, jitter_y);
                 
                     float u = half_width - (x + jitter_x);
                     float v = half_height - (y + jitter_y);
@@ -60,6 +54,7 @@ shared_ptr<Image> RayTracer::Render(int width, int height) {
                 // Reihard Tone Map
                 Color hdr = tot_clr / (Color(1.f, 1.f, 1.f) + tot_clr);
                 result->setPixel(x, y, Color(std::pow(hdr.r, 1.f/2.2f), std::pow(hdr.g, 1.f/2.2f), std::pow(hdr.b, 1.f/2.2f)));
+                //result->setPixel(x, y, tot_clr);
             }
         }
     }
@@ -151,40 +146,52 @@ Color RayTracer::PathTrace(Ray ray, int depth, shared_ptr<Sampler2D> generator, 
     return tot_color;
 }
 */
-Color RayTracer::PathTraceIterative(cblt::Ray cam_ray, shared_ptr<cblt::Sampler2D> &generator)
+Color RayTracer::PathTraceIterative(cblt::Ray cam_ray, shared_ptr<cblt::Sampler> &generator)
 {
     Color tot_light(0.f, 0.f, 0.f), throughput(1.f, 1.f, 1.f);
     cblt::Ray path_ray = cam_ray;
-    bool specular_bounce(false);
     for (int depth = 0; depth < max_depth_; ++depth) {
         // intersect scene
         cblt::HitInfo scene_pt;
         scene_pt.hit_time = cblt::inf_F;
         bool hit = SceneIntersect(path_ray, scene_pt);
         
-        if (!hit) {
+        if (!hit) 
+        {
             break;
         }
 
-        tot_light = tot_light + throughput * scene_pt.m->Emittance();
-
+        if (depth == 0)
+        {
+            // get emission for area lights directly visible to camera
+            tot_light = tot_light + throughput * scene_pt.Emittance();
+        }
+        
+        // compute direct lighting contribution
+        tot_light = tot_light + throughput * image_scene_->SampleSingleLight(-path_ray.dir, scene_pt, generator);
+        
         // sample BRDF at point to determine how light is transmitted to the next point on the path
         cblt::Vec3 incoming;
         float pdf;
         Color f = scene_pt.m->Sample(-path_ray.dir, incoming, pdf, scene_pt, generator);
-        if (f.r + f.g + f.b < cblt::eps_zero_F) {
+        if (f.r + f.g + f.b < cblt::eps_zero_F)
+        {
             break;
         }
-        float cos_theta = cblt::Dot(scene_pt.norm, incoming);
-        throughput = throughput * f * std::abs(cos_theta) / pdf;
-        path_ray = cblt::Ray(scene_pt.pos + incoming * .0001f, incoming);
+        
+        float cos_theta = cblt::AbsDot(scene_pt.norm, incoming);
+        throughput = throughput * f * cos_theta / pdf;
+        
+        path_ray = cblt::Ray(scene_pt.pos + incoming * cblt::eps_zero_F, incoming);
 
         // russian roulette
-        if (depth > 3) {
+        if (depth > 3)
+        {
             float p = throughput.Luminance();
-            float u, v;
-            generator->NextSample(u, v);
-            if(u > p) {
+            float cutoff;
+            generator->Next1D(cutoff);
+            if(cutoff > p)
+            {
                 break;
             }
             throughput = throughput / p;

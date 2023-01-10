@@ -1,5 +1,5 @@
-#ifndef SCENE_PRIM_H
-#define SCENE_PRIM_H
+#ifndef CBLT_SCENE_PRIM_H
+#define CBLT_SCENE_PRIM_H
 
 #include "boundable.h"
 #include "geometry.h"
@@ -21,6 +21,8 @@ namespace cblt
         Mat4 local_to_world_;
         Mat4 world_to_local_;
         std::shared_ptr<Geometry> model_;
+
+        friend class Scene;
     };
 }
-#endif  // SCENE_PRIM_H
+#endif  // CBLT_SCENE_PRIM_H

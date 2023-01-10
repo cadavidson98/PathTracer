@@ -2,6 +2,7 @@
 #define SDESC_FILE_LOADER_H
 
 #include "file_loader.h"
+#include "light/light.h"
 
 #include "mat/material.h"
 
@@ -20,9 +21,11 @@ class SDescFileLoader final : public FileLoader {
     bool ProcessTorrenceMaterial(pugi::xml_node &mat_node);
     bool ProcessMesh(pugi::xml_node &mesh_node);
     bool ProcessPrim(pugi::xml_node &elem_node);
+    bool ProcessLight(pugi::xml_node &light_node);
 
     cblt::Camera cam_;
     std::unordered_map<std::string, std::shared_ptr<cblt::Material>> material_map_;
     std::unordered_map<std::string, std::shared_ptr<cblt::Geometry>> mesh_map_;
+    std::vector<std::shared_ptr<cblt::Light>> lights_;
 };
 #endif  // SDESC_FILE_LOADER_H

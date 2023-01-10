@@ -61,7 +61,7 @@ namespace cblt {
   	    }
 
   	    float hit_t = Dot(pos1_ - ray.pos, face_norm_) / dt;
-  	    if (hit_t < 0) {
+  	    if (hit_t < eps_zero_F) {
   	        // only go forward in the direction
   	        return false;
   	    }
@@ -73,7 +73,7 @@ namespace cblt {
   	    Vec3 to_p3 = pos3_ - hit_pos;
   	    Vec3 to_p2 = pos2_ - hit_pos;
   	    Vec3 to_p1 = pos1_ - hit_pos;
-
+		// barycentric coordinate test for triangle intersection - this makes it easy to interpret between vertices
   	    a = Magnitude(Cross(to_p3, to_p2)) / face_norm_len_;
   	    b = Magnitude(Cross(to_p3, to_p1)) / face_norm_len_;
   	    c = Magnitude(Cross(to_p1, to_p2)) / face_norm_len_;
@@ -104,8 +104,16 @@ namespace cblt {
     	        tex_norm = TBN * tex_norm;
     	        hit.norm = Vec3(tex_norm.x, tex_norm.y, tex_norm.z);*/
     	    }
-		    
-    	    collision_pt.norm = (Dot(collision_pt.norm, ray.dir) > 0.f) ? -collision_pt.norm: collision_pt.norm;
+		    if (Dot(collision_pt.norm, ray.dir) > 0.f) {
+				// we are exiting this medium, since the normals are facing the same direction 
+				collision_pt.medium_ior = mat_->IOR();
+				collision_pt.norm = -collision_pt.norm;
+			}
+			else {
+				// we are entering the medium, so use 1.0 to represent air for now
+				collision_pt.medium_ior = 1.f;
+			}
+    	    
 		    return true;
   	    }
 

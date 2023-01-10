@@ -2,9 +2,11 @@
 #define SAMPLER_H
 namespace cblt
 {
-    class Sampler2D {
+    class Sampler 
+    {
     public:
-        virtual void NextSample(float &x, float &y) = 0;
+        virtual void Next1D(float &x) = 0;
+        virtual void Next2D(float &x, float &y) = 0;
     };
 }
 #endif  // SAMPLER_H

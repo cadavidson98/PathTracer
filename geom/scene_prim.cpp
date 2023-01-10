@@ -57,6 +57,7 @@ namespace cblt
             Vec3 tan, bitan;
             OrthonormalBasis(collision_pt.norm, tan, bitan);
             collision_pt.shading_basis = Mat4(Vec4(tan, 1.f), Vec4(collision_pt.norm, 1.f), Vec4(bitan, 1.f), Vec4(0.f, 0.f, 0.f, 1.f)); 
+            collision_pt.geom = this;
             return true;
         }
         else

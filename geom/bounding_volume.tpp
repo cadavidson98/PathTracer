@@ -319,20 +319,30 @@ namespace cblt {
      */
     template <class T>
     bool BoundingVolume<T>::IntersectIterative(const Ray &ray, HitInfo &hit) {
-        std::stack<int, std::vector<int>> nodes;
-        nodes.push(0);
-        float best_time = inf_F;
+        int nodes[2048];
+        int stack_idx = 0;
+        //std::stack<int, std::vector<int>> nodes;
+        //nodes.push(0);
+        nodes[0] = 0;
+        float best_time = hit.hit_time;
         bool result = false;
-        while(!nodes.empty()) {
-            int cur_node_idx = nodes.top();
-            nodes.pop();
+        while(/*!nodes.empty()*/ stack_idx >= 0) {
+            //int cur_node_idx = nodes.top();
+            //nodes.pop();
+            int cur_node_idx = nodes[stack_idx--];
+
+            if (cur_node_idx == -1) {
+                continue;
+            }
+
+            BoundingNode &cur_node = tree_[cur_node_idx];
             float i_time = inf_F;
-            if(cur_node_idx == -1 || !tree_[cur_node_idx].bnds_.Intersect(ray, i_time) || i_time > best_time) {
+            if(!cur_node.bnds_.Intersect(ray, i_time) || i_time > best_time) {
                 // Either this node does exist, the ray doesn't collide with it, or we have already found a closer
                 // prim, so there is no reason to check this node
                 continue;
             }
-            BoundingNode cur_node = tree_[cur_node_idx];
+            
             if(cur_node.l_child_ == -1 && cur_node.r_child_ == -1) {
                 // check to see if there is a collision
                 HitInfo prim_hit;
@@ -352,8 +362,10 @@ namespace cblt {
             }
             else {
                 // add child nodes to the stack
-                nodes.push(cur_node.r_child_);
-                nodes.push(cur_node.l_child_);
+                //nodes.push(cur_node.r_child_);
+                //nodes.push(cur_node.l_child_);
+                nodes[++stack_idx] = cur_node.r_child_;
+                nodes[++stack_idx] = cur_node.l_child_;
             }
         }
         return result;

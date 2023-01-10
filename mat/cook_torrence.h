@@ -10,13 +10,13 @@ namespace cblt
     public:
         CookTorrenceMaterial(Color albedo, Color specular, Color emissive, float ior, float rough_, float metal);
 
-        Color Sample(const Vec3 &incoming, Vec3 &outgoing, float &pdf, const HitInfo &collisionPt, std::shared_ptr<Sampler2D> &BRDF_sampler);
+        Color Sample(const Vec3 &incoming, Vec3 &outgoing, float &pdf, const HitInfo &collisionPt, std::shared_ptr<Sampler> &BRDF_sampler);
         Color BRDF(const Vec3 &incoming, const Vec3 &outgoing, const HitInfo &collision_pt, float &pdf);
         Color Emittance();
     private:
 
-        void RandomUnitVectorInHemisphere(const Vec3 &bitangent, const Vec3 &norm, const Vec3 &tangent, Vec3 &result, std::shared_ptr<Sampler2D> generator);
-        void RandomUnitVectorInGGX(const Vec3 &bitangent, const Vec3 &norm, const Vec3 &tangent, const Vec3 &incoming, Vec3 &result, float &pdf, std::shared_ptr<Sampler2D> generator);
+        void RandomUnitVectorInHemisphere(const Vec3 &bitangent, const Vec3 &norm, const Vec3 &tangent, Vec3 &result, std::shared_ptr<Sampler> generator);
+        void RandomUnitVectorInGGX(const Vec3 &bitangent, const Vec3 &norm, const Vec3 &tangent, const Vec3 &incoming, Vec3 &result, float &pdf, std::shared_ptr<Sampler> generator);
         float GGXDisbritution(float cos_theta);
         float SmithGeometry(const Vec3 &omega, const Vec3 &normal, const Vec3 &halfway);
         float SchlickFresnel(float F0, float cos_theta);

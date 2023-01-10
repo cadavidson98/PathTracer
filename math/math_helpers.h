@@ -19,7 +19,7 @@ namespace cblt {
 
     template <typename T>
     inline T lerp(T x, T y, float t) {
-        return x + (y - x) * t;
+        return x * (1.f - t) + y * t;
     }
 }
 #endif  // CBLT_MATH_HELPERS_H

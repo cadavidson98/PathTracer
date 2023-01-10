@@ -25,6 +25,10 @@ namespace cblt {
         return lhs.x * rhs.x + lhs.y * rhs.y;
     }
 
+    inline float AbsDot(const Vec2 &lhs, const Vec2 &rhs) {
+        return std::abs(Dot(lhs, rhs));
+    }
+
     inline float Magnitude(const Vec2 &vec) {
         return std::sqrt(vec.x * vec.x + vec.y * vec.y);
     }
@@ -60,6 +64,10 @@ namespace cblt {
 
     inline float Dot(const Vec3 &lhs, const Vec3 &rhs) {
         return lhs.x * rhs.x + lhs.y * rhs.y + lhs.z * rhs.z;
+    }
+
+    inline float AbsDot(const Vec3 &lhs, const Vec3 &rhs) {
+        return std::abs(Dot(lhs, rhs));
     }
 
     inline Vec3 Cross(const Vec3 &lhs, const Vec3 &rhs) {
@@ -104,6 +112,10 @@ namespace cblt {
 
     inline float Dot(const Vec4 &lhs, const Vec4 &rhs) {
         return lhs.x * rhs.x + lhs.y * rhs.y + lhs.z * lhs.z + lhs.w * lhs.w;
+    }
+
+    inline float AbsDot(const Vec4 &lhs, const Vec4 &rhs) {
+        return std::abs(Dot(lhs, rhs));
     }
 
     inline float Magnitude(const Vec4 &vec) {

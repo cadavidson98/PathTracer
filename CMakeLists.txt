@@ -6,13 +6,15 @@ message("Current dir: ${CMAKE_CURRENT_SOURCE_DIR}")
 set(SHADER_DIR ${CMAKE_CURRENT_SOURCE_DIR}/data)
 set(MATH_DIR ${CMAKE_CURRENT_SOURCE_DIR}/math)
 set(MAT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/mat)
+set(LIGHT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/light)
 set(GEOM_DIR ${CMAKE_CURRENT_SOURCE_DIR}/geom)
 set(TEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/test)
-set(TEST_NAME scene_graph_tests)
-
 
 file(GLOB_RECURSE MATH_SOURCE math/*.cpp)
 file(GLOB_RECURSE MATH_HEADER math/*.h)
+
+set(LIGHT_SOURCE ${LIGHT_DIR}/area_light.cpp)
+set(LIGHT_HEADER ${LIGHT_DIR}/light.h ${LIGHT_DIR}/area_light.h)
 
 file(GLOB_RECURSE GEOM_SOURCE geom/*.cpp)
 file(GLOB_RECURSE GEOM_HEADER geom/*.h)
@@ -23,8 +25,8 @@ file(GLOB_RECURSE CORE_HEADER include/*.h)
 file(GLOB_RECURSE MAT_SOURCE mat/*.cpp)
 file(GLOB_RECURSE MAT_HEADER mat/*.h)
 
-add_executable(${PROJECT_NAME} ${MATH_SOURCE} ${MATH_HEADER} ${GEOM_SOURCE} ${GEOM_HEADER} ${MAT_SOURCE} ${MAT_HEADER} ${CORE_SOURCE} ${CORE_HEADER})
-#add_executable(${TEST_NAME} ${MATH_SOURCE} ${MATH_HEADER} ${GEOM_SOURCE} ${GEOM_HEADER} ${MAT_SOURCE} ${MAT_HEADER} ${TEST_DIR}/test_scene_graph_load.cpp src/bvh.cpp include/bvh.h include/vec.h src/vec.cpp include/matrix.h src/matrix.cpp)
+add_executable(${PROJECT_NAME} ${MATH_SOURCE} ${MATH_HEADER} ${LIGHT_SOURCE} ${LIGHT_HEADER} ${GEOM_SOURCE} ${GEOM_HEADER} ${MAT_SOURCE} ${MAT_HEADER} ${CORE_SOURCE} ${CORE_HEADER})
+
 set(BUILD_SHARED_LIBS FALSE CACHE BOOL "x" FORCE)
 set(ASSIMP_NO_EXPORT TRUE CACHE BOOL "x" FORCE)
 set(ASSIMP_BUILD_TESTS FALSE CACHE BOOL "x" FORCE)
@@ -36,18 +38,14 @@ set(ASSIMP_BUILD_COLLADA_IMPORTER TRUE CACHE BOOL "x" FORCE)
 set(ASSIMP_BUILD_OBJ_IMPORTER TRUE CACHE BOOL "x" FORCE)
 set(ASSIMP_BUILD_FBX_IMPORTER TRUE CACHE BOOL "x" FORCE)
 set(ASSIMP_BUILD_BLEND_IMPORTER TRUE CACHE BOOL "x" FORCE)
-#add_subdirectory(extern/assimp)
+
 add_subdirectory(extern/stbimage)
 add_subdirectory(extern/pugixml)
 
 find_package(OpenMP)
 
-target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR} include ${MATH_DIR} ${GEOM_DIR} ${MAT_DIR})
+target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR} include ${MATH_DIR} ${GEOM_DIR} ${MAT_DIR} ${LIGHT_DIR})
 target_link_libraries(${PROJECT_NAME} stbimage OpenMP::OpenMP_CXX pugixml)
-
-#target_include_directories(${TEST_NAME} PUBLIC ${CMAKE_SOURCE_DIR} include ${MATH_DIR} ${GEOM_DIR} ${MAT_DIR})
-#target_link_libraries(${TEST_NAME} stbimage assimp OpenMP::OpenMP_CXX)
-
 
 set(DATA_DIR_BUILD ${CMAKE_CURRENT_SOURCE_DIR}/data)
 set(DATA_DIR_INSTALL ${CMAKE_INSTALL_PREFIX}/share/${PROJECT_NAME}/data)

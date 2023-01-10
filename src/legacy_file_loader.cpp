@@ -7,6 +7,8 @@
 #include "math/constants.h"
 #include "math/math_helpers.h"
 
+#include "light/area_light.h"
+
 #include "geom/triangle.h"
 #include "geom/triangle_mesh.h"
 #include "geom/scene_prim.h"
@@ -28,6 +30,9 @@ std::shared_ptr<cblt::Scene> LegacyFileLoader::LoadScene(std::string file_name) 
             Color(1.f, 1.f, 1.f), 
             Color(0.f, 0.f, 0.f),
             1.f, 1.f, 0.0f);
+    
+    std::vector<std::shared_ptr<cblt::Light>> lights;
+    
     std::vector<std::shared_ptr<cblt::Triangle>> tris;
     std::vector<cblt::Vec3> verts;
     std::vector<cblt::Vec3> norms;
@@ -70,7 +75,7 @@ std::shared_ptr<cblt::Scene> LegacyFileLoader::LoadScene(std::string file_name) 
             else
             {
                 Color base(albedo.r, albedo.g, albedo.b);
-                cur_mat = std::make_unique<cblt::DisneyPrincipledMaterial>(base, 0.f, metal, 0.f, 0.f, rough, 1.f, 0.f, 0.f, 0.f, 0.f);
+                cur_mat = std::make_unique<cblt::DisneyPrincipledMaterial>(base, 0.f, metal, 0.f, 0.f, rough, 1.f, 0.f, 0.f, 0.f, 0.f, 1.0, false);
             }            
         }
         else if (!command.compare("max_vertices:")) {
@@ -133,19 +138,19 @@ std::shared_ptr<cblt::Scene> LegacyFileLoader::LoadScene(std::string file_name) 
                     >> pos.x >> pos.y >> pos.z;
             Light *dir_light = new Light{LightType::DIR, clr, pos, falloff, Vec3(), Vec3(), 0.f, 0.f};
             new_scene->lights_.push_back(dir_light);
-        }
+        }*/
         else if(!command.compare("quad_light:")) {
-            Vec4 pos(0.f, 0.f, 0.f, 1.f);
             Color clr;
-            Vec3 dims, left, up;
+            cblt::Vec3 pos, dims, left, up, right;
             in_file >> clr.r >> clr.g >> clr.b
                     >> pos.x >> pos.y >> pos.z
                     >> dims.x >> dims.y
                     >> left.x >> left.y >> left.z
                     >> up.x >> up.y >> up.z;
-            Light *quad_light = new Light{LightType::AREA, clr, pos, dims, left, up, 0.f, 0.f};
-            new_scene->lights_.push_back(quad_light);
-        }*/
+            right = Normalize(cblt::Cross(left, up));
+            std::shared_ptr<cblt::Light> quad_light = std::make_shared<cblt::AreaLight>(pos, left, up, right, clr, 1.0f, dims.x, dims.y);
+            lights.push_back(quad_light);
+        }
         else {
             // Unsupported command or comment, just skip it
             std::getline(in_file, line);
@@ -161,6 +166,6 @@ std::shared_ptr<cblt::Scene> LegacyFileLoader::LoadScene(std::string file_name) 
     cblt::Camera cam(cam_eye, cam_fwd, cam_up, cam_FOV);
 
     // construct the scene
-    std::shared_ptr<cblt::Scene> new_scene = std::make_shared<cblt::Scene>(cam, mesh);
+    std::shared_ptr<cblt::Scene> new_scene = std::make_shared<cblt::Scene>(cam, mesh, lights);
     return new_scene;
 }

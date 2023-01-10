@@ -7,6 +7,8 @@
 #include "math/mat4.h"
 #include "math/math_helpers.h"
 
+#include "light/area_light.h"
+
 #include "geom/triangle_mesh.h"
 
 #include <iostream>
@@ -56,14 +58,22 @@ std::shared_ptr<cblt::Scene> SDescFileLoader::LoadScene(std::string file_name)
         ProcessMesh(geom);
     }
 
+    pugi::xpath_node_set lights = doc.select_nodes("/SDesc/Library_Lights/light");
+    for (pugi::xpath_node node: lights)
+    {
+        pugi::xml_node light = node.node();
+        ProcessLight(light);
+    }
+
     // construct the scene
-    std::vector<std::shared_ptr<cblt::ScenePrim>> prims;
+    std::vector<std::shared_ptr<cblt::ScenePrim>> s_prims;
+    std::vector<std::shared_ptr<cblt::Light>> l_prims;
     pugi::xpath_node_set scene = doc.select_nodes("/SDesc/Scene/Element");
     for (pugi::xpath_node node: scene)
     {
         pugi::xml_node elem_node = node.node();
         // fetch mesh
-        std::string mesh_id = elem_node.attribute("primitive_id").as_string();
+        std::string id = elem_node.attribute("primitive_id").as_string();
         
         std::vector<float> transform_arr;
     
@@ -71,9 +81,13 @@ std::shared_ptr<cblt::Scene> SDescFileLoader::LoadScene(std::string file_name)
         std::istream_iterator<float> mat_iter(parse_mat);
         parseString(mat_iter, transform_arr);
         cblt::Mat4 transform(reinterpret_cast<float*>(transform_arr.data()));
-        prims.push_back(std::make_shared<cblt::ScenePrim>(mesh_map_[mesh_id], transform));
+        if (mesh_map_[id] != nullptr)
+        {
+            s_prims.push_back(std::make_shared<cblt::ScenePrim>(mesh_map_[id], transform));
+        }
     }
-    return std::make_shared<cblt::Scene>(cam_, prims);
+    
+    return std::make_shared<cblt::Scene>(cam_, s_prims, lights_);
 }
 
 bool SDescFileLoader::ProcessCamera(pugi::xml_node &camera_node)
@@ -131,7 +145,8 @@ bool SDescFileLoader::ProcessPrincipledMaterial(pugi::xml_node &mat_node)
     float mat_shn_tint = mat_node.select_node("Sheen_Tint").node().text().as_float();
     float mat_clear = mat_node.select_node("Clearcoat").node().text().as_float();
     float mat_clear_coat = mat_node.select_node("Clearcoat_Gloss").node().text().as_float();
-    std::shared_ptr<cblt::Material> material = std::make_shared<cblt::DisneyPrincipledMaterial>(mat_base, mat_sub, mat_met, mat_spec, mat_spec_tint, mat_rough, mat_aniso, mat_shn, mat_shn_tint, mat_clear, mat_clear_coat);
+    float mat_ior = mat_node.select_node("IOR").node().text().as_float();
+    std::shared_ptr<cblt::Material> material = std::make_shared<cblt::DisneyPrincipledMaterial>(mat_base, mat_sub, mat_met, mat_spec, mat_spec_tint, mat_rough, mat_aniso, mat_shn, mat_shn_tint, mat_clear, mat_clear_coat, mat_ior, false);
     material_map_[std::string(mat_node.attribute("ID").as_string())] = material;
     return true;
 }
@@ -205,6 +220,64 @@ bool SDescFileLoader::ProcessMesh(pugi::xml_node &mesh_node)
 
     std::shared_ptr<cblt::Geometry> model = std::make_shared<cblt::TriangleMesh>(mesh);
     mesh_map_[std::string(mesh_node.attribute("ID").as_string())] = model;
+    return true;
+}
+
+bool SDescFileLoader::ProcessLight(pugi::xml_node &light_node)
+{
+
+    pugi::xml_node node_clr = light_node.select_node("color").node();
+    pugi::xml_node node_length = light_node.select_node("length").node();
+    pugi::xml_node node_width = light_node.select_node("width").node();
+    pugi::xml_node node_power = light_node.select_node("power").node();
+    pugi::xml_node node_pos = light_node.select_node("position").node();
+    pugi::xml_node node_dir_x = light_node.select_node("direction_length").node();
+    pugi::xml_node node_dir_y = light_node.select_node("direction").node();
+    pugi::xml_node node_dir_z = light_node.select_node("direction_width").node();
+    
+    std::vector<float> clr, pos, dir_x, dir_y, dir_z;
+    float length, width, power;
+
+    std::stringstream parse_clr(node_clr.text().as_string()),
+                      parse_pos(node_pos.text().as_string()),
+                      parse_d_x(node_dir_x.text().as_string()),
+                      parse_d_y(node_dir_y.text().as_string()),
+                      parse_d_z(node_dir_z.text().as_string());
+
+    std::istream_iterator<float> clr_iter(parse_clr),
+                                 pos_iter(parse_pos),
+                                 d_x_iter(parse_d_x),
+                                 d_y_iter(parse_d_y),
+                                 d_z_iter(parse_d_z);
+
+    parseString(clr_iter, clr);
+    parseString(pos_iter, pos);
+    parseString(d_x_iter, dir_x);
+    parseString(d_y_iter, dir_y);
+    parseString(d_z_iter, dir_z);
+
+    length = node_length.text().as_float();
+    width = node_width.text().as_float();
+    power = node_power.text().as_float();
+
+    Color light_clr(clr[0], clr[1], clr[2]);
+    cblt::Vec3 light_pos(pos[0], pos[1], pos[2]);
+    cblt::Vec3 light_dir(dir_y[0], dir_y[1], dir_y[2]),
+               light_l_d(dir_x[0], dir_x[1], dir_x[2]),
+               light_w_d(dir_z[0], dir_z[1], dir_z[2]);
+
+    std::shared_ptr<cblt::Light> light = std::make_shared<cblt::AreaLight>(light_pos, light_l_d, light_dir, light_w_d, light_clr, power, length, width);
+    
+    std::string light_type(light_node.attribute("type").as_string()); 
+    std::string light_id(light_node.attribute("ID").as_string());
+
+    /*if (light_type.compare("area light") == 0)
+    {
+        // area lights have geometry, so they are considered geometry
+        mesh_map_[light_id] = std::dynamic_pointer_cast<cblt::Geometry>(light); 
+    }*/
+    
+    lights_.push_back(light);
     return true;
 }
 

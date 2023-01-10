@@ -23,7 +23,7 @@ private:
     shared_ptr<cblt::Scene> image_scene_;
 
     //Color PathTrace(cblt::Ray ray, int depth, shared_ptr<Sampler2D> generator, Color &path_throughput);
-    Color PathTraceIterative(cblt::Ray cam_ray, shared_ptr<cblt::Sampler2D> &generator);
+    Color PathTraceIterative(cblt::Ray cam_ray, shared_ptr<cblt::Sampler> &generator);
     //Color RayCast(cblt::Ray ray, shared_ptr<Sampler2D> generator);
     //Color SampleLights(const cblt::Ray &incoming, const cblt::HitInfo &surface, shared_ptr<Sampler2D> generator);
     bool SceneIntersect(cblt::Ray ray, cblt::HitInfo &hit);

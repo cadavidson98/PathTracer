@@ -14,11 +14,11 @@ namespace cblt
         lambertian_pdf_ = INV_PI_f; 
     }
 
-    Color CookTorrenceMaterial::Sample(const Vec3 &outgoing, Vec3 &incoming, float &pdf, const HitInfo &collisionPt, std::shared_ptr<Sampler2D> &BRDF_sampler) {
+    Color CookTorrenceMaterial::Sample(const Vec3 &outgoing, Vec3 &incoming, float &pdf, const HitInfo &collisionPt, std::shared_ptr<Sampler> &BRDF_sampler) {
         // Illuminate using Cook-Torence reflectance model
         // First, determine which BRDF we need to use for this ray
-        float x, y;
-        BRDF_sampler->NextSample(x, y);
+        float x;
+        BRDF_sampler->Next1D(x);
         float tot_luminance = 1.f;
         float percent_diffuse = 1.f - metalness_;
         float percent_spec = metalness_;
@@ -83,12 +83,12 @@ namespace cblt
     }
 
     void CookTorrenceMaterial::RandomUnitVectorInHemisphere(const Vec3 &bitangent, const Vec3 &normal, const Vec3 &tangent, 
-                                                            Vec3 &result, std::shared_ptr<Sampler2D> generator) {
+                                                            Vec3 &result, std::shared_ptr<Sampler> generator) {
         // sart by getting a random unit vector in the unit disk
         float u1 = 0.f;
         float u2 = 0.f;
         // calculates 2 quasi-random numbers in the range 0-1 inclusive
-        generator->NextSample(u1, u2);
+        generator->Next2D(u1, u2);
         float radius = std::sqrtf(u1);
         float theta = 2.f * PI_f * u2;
 
@@ -109,7 +109,7 @@ namespace cblt
 
     // Adapted from https://schuttejoe.github.io/post/ggximportancesamplingpart1/
     void CookTorrenceMaterial::RandomUnitVectorInGGX(const Vec3 &bitangent, const Vec3 &normal, const Vec3 &tangent, 
-                                                     const Vec3 &outgoing, Vec3 &result, float &pdf, std::shared_ptr<Sampler2D> generator) {
+                                                     const Vec3 &outgoing, Vec3 &result, float &pdf, std::shared_ptr<Sampler> generator) {
         Mat4 Tan_To_World(Vec4(bitangent, 0.f), Vec4(normal, 0.f), Vec4(tangent, 0.f), Vec4(0.f, 0.f, 0.f, 1.f));
         Mat4 World_To_Tan = Inverse(Tan_To_World);
         Vec4 out_tan = World_To_Tan * Vec4(outgoing, 0.f);
@@ -119,7 +119,7 @@ namespace cblt
         float u1 = 0.f;
         float u2 = 0.f;
 
-        generator->NextSample(u1, u2);
+        generator->Next2D(u1, u2);
         // Formula from: https://agraphicsguy.wordpress.com/2015/11/01/sampling-microfacet-brdf/
         float rough_sqr = roughness_ * roughness_;
         float theta = std::acos((1.f - u1) / (u1 * (rough_sqr - 1.f) + 1.f));

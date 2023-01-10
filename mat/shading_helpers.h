@@ -3,6 +3,9 @@
 
 #include "math/math_helpers.h"
 #include "math/constants.h"
+
+#include "fresnel.h"
+
 #include <algorithm>
 #include <cmath>
 
@@ -31,8 +34,9 @@ namespace cblt
     inline float GGX_aniso(float alpha_x, float alpha_y, float cos_phi, float sin_phi, float cos_theta)
     {
         float A = cblt::sqr(cos_phi / alpha_x) + cblt::sqr(sin_phi / alpha_y);
-        float denom = cblt::PI_f * alpha_x * alpha_y * cblt::sqr(cblt::sqr(cos_theta)*(1.f - A) + A);
-        float tan_sqr = (1.f - cblt::sqr(cos_theta)) / cblt::sqr(cos_theta);
+        float denom = cblt::PI_f * alpha_x * alpha_y * cblt::sqr(cblt::sqr(cos_theta) + A);
+        //float other_denom = cblt::PI_f * alpha_x * alpha_y * cblt::sqr(cblt::sqr(cos_theta)*(1.f - A) + A);
+        //float tan_sqr = (1.f - cblt::sqr(cos_theta)) / cblt::sqr(cos_theta);
         //float ref = PI_f * alpha_x * alpha_y * sqr(sqr(cos_theta)) * sqr(1.f + tan_sqr * (A));
         return 1.f / denom;
     }
@@ -58,7 +62,7 @@ namespace cblt
 
     inline float SmithPartialGeom(const Vec3 &omega, const Vec3 &halfway, float alpha)
     {
-        float w_dot_h = std::max(Dot(omega, halfway), 0.f);
+        float w_dot_h = AbsDot(omega, halfway);
     
         float tan_sqr = (1.f - w_dot_h * w_dot_h) / (w_dot_h * w_dot_h);
         return 2.f / (1.f + std::sqrt(1.f + alpha * alpha * tan_sqr));
@@ -70,11 +74,6 @@ namespace cblt
         float tan_sqr = (1.f - n_dot_v * n_dot_v) / (n_dot_v * n_dot_v);
         float denom = 1.f + std::sqrt(1.f + sin_cos_aniso * tan_sqr);
         return 2.f / denom;
-    }
-
-    inline float FresnelSchlick(float F0, float cos_theta) 
-    {
-        return F0 + (1.f - F0) * std::pow(1.f - cos_theta, 5);
     }
 
     inline void OrthonormalBasis(const Vec3 &normal, Vec3 &tangent, Vec3 &bitangent)

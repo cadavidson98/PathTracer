@@ -4,13 +4,20 @@
 
 namespace cblt
 {
-    RandomSampler2D::RandomSampler2D(unsigned int seed) {
+    RandomSampler::RandomSampler(unsigned int seed)
+    {
         generator_.seed(seed);
-        distribution = std::uniform_real_distribution<float>(0.0, 1.0);
+        distribution_ = std::uniform_real_distribution<float>(0.0f, 1.0f);
     }
 
-    void RandomSampler2D::NextSample(float &x, float &y) {
-        x = distribution(generator_);
-        y = distribution(generator_);
+    void RandomSampler::Next1D(float &x)
+    {
+        x = distribution_(generator_);
+    }
+
+    void RandomSampler::Next2D(float &x, float &y)
+    {
+        x = distribution_(generator_);
+        y = distribution_(generator_);
     }
 }

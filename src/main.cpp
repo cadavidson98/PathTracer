@@ -13,9 +13,9 @@
 
 int main(int argc, char* argv[]) {
     std::string file_name = std::string(DEBUG_DIR) + '/'; 
-    std::string out_name("exporter_test.png");
+    std::string out_name("debug.png");
     if(argc < 2) {
-        file_name += "dragon_clearcoat.sdesc";
+        file_name += "fireplace.sdesc";
     }
     else if (argc < 3) {
         file_name += argv[1];
