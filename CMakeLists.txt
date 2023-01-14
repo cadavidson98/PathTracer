@@ -13,8 +13,8 @@ set(TEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/test)
 file(GLOB_RECURSE MATH_SOURCE math/*.cpp)
 file(GLOB_RECURSE MATH_HEADER math/*.h)
 
-set(LIGHT_SOURCE ${LIGHT_DIR}/area_light.cpp)
-set(LIGHT_HEADER ${LIGHT_DIR}/light.h ${LIGHT_DIR}/area_light.h)
+set(LIGHT_SOURCE ${LIGHT_DIR}/area_light.cpp ${LIGHT_DIR}/direction_light.cpp)
+set(LIGHT_HEADER ${LIGHT_DIR}/light.h ${LIGHT_DIR}/area_light.h ${LIGHT_DIR}/direction_light.h)
 
 file(GLOB_RECURSE GEOM_SOURCE geom/*.cpp)
 file(GLOB_RECURSE GEOM_HEADER geom/*.h)

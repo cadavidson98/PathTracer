@@ -14,7 +14,7 @@
 RayTracer::RayTracer(shared_ptr<cblt::Scene> &scene_data) {
     image_scene_ = scene_data;
     max_depth_ = 8;
-    num_samples_ = 128;
+    num_samples_ = 256;
 }
 
 RayTracer::~RayTracer() {

@@ -22,6 +22,8 @@ class SDescFileLoader final : public FileLoader {
     bool ProcessMesh(pugi::xml_node &mesh_node);
     bool ProcessPrim(pugi::xml_node &elem_node);
     bool ProcessLight(pugi::xml_node &light_node);
+    bool ProcessAreaLight(pugi::xml_node &light_node);
+    bool ProcessDirLight(pugi::xml_node &light_node);
 
     cblt::Camera cam_;
     std::unordered_map<std::string, std::shared_ptr<cblt::Material>> material_map_;

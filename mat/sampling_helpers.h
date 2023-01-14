@@ -11,6 +11,31 @@
 
 namespace cblt
 {
+    inline Vec2 ConcentricPointOnUnitDisk(const float u1, const float u2)
+    {
+        // uniform sample disk, then project onto the hemisphere using malley's method
+        // concentric mapping, courtesy of PBR
+        // get values in [-1, 1]
+        float norm_u1 = 2.f * u1 - 1.f, norm_u2 = 2.f * u2 - 1.f;
+        float radius(0.f), theta(0.f);
+
+        if (norm_u1 != 0.f || norm_u2 != 0.f)
+        {
+            if (std::abs(norm_u1) > std::abs(norm_u2))
+            {
+                radius = norm_u1;
+                theta = .25f * PI_f * (norm_u2 / norm_u1);
+            }
+            else
+            {
+                radius = norm_u2;
+                theta = .5f * PI_f - .25f * PI_f * (norm_u1 / norm_u2);
+            }
+        }
+
+        return Vec2(radius * std::cos(theta), radius * std::sin(theta));
+    }
+
     inline Vec3 RandomUnitVectorInHemisphere(const Vec3 &bitangent, const Vec3 &normal, const Vec3 &tangent, 
                                              float &pdf, const float u1, const float u2)
     {
@@ -37,31 +62,10 @@ namespace cblt
     inline Vec3 RandomUnitVectorInCosineWeightedHemisphere(const Vec3 &bitangent, const Vec3 &normal, const Vec3 &tangent,
                                                            float &pdf, const float u1, const float u2)
     {
-        // uniform sample disk, then project onto the hemisphere using malley's method
-        // concentric mapping, courtesy of PBR
-        // get values in [-1, 1]
-        float norm_u1 = 2.f * u1 - 1.f, norm_u2 = 2.f * u2 - 1.f;
-        float radius(0.f), theta(0.f);
+        Vec2 sample = ConcentricPointOnUnitDisk(u1, u2);
+        float y = std::sqrt(std::max(0.f, 1.f - sqr(sample.x) - sqr(sample.y)));
 
-        if (norm_u1 != 0.f || norm_u2 != 0.f)
-        {
-            if (std::abs(norm_u1) > std::abs(norm_u2))
-            {
-                radius = norm_u1;
-                theta = .25f * PI_f * (norm_u2 / norm_u1);
-            }
-            else
-            {
-                radius = norm_u2;
-                theta = .5f * PI_f - .25f * PI_f * (norm_u1 / norm_u2);
-            }
-        }
-
-        float x = radius * std::cos(theta);
-        float z = radius * std::sin(theta);
-        float y = std::sqrt(std::max(0.f, 1.f - sqr(x) - sqr(z)));
-
-        Vec3 rand_vec(x, y, z);
+        Vec3 rand_vec(sample.x, y, sample.y);
         
         Mat4 BNT(Vec4(bitangent, 0.f), Vec4(normal, 0.f), Vec4(tangent, 0.f), Vec4(0.f, 0.f, 0.f, 1.f));
         Vec4 out_vec = BNT * Vec4(rand_vec, 0);

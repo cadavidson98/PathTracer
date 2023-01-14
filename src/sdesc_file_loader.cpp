@@ -8,6 +8,7 @@
 #include "math/math_helpers.h"
 
 #include "light/area_light.h"
+#include "light/direction_light.h"
 
 #include "geom/triangle_mesh.h"
 
@@ -225,7 +226,50 @@ bool SDescFileLoader::ProcessMesh(pugi::xml_node &mesh_node)
 
 bool SDescFileLoader::ProcessLight(pugi::xml_node &light_node)
 {
+    std::string light_type(light_node.attribute("type").as_string()); 
+    if (!light_type.compare("area light"))
+    {
+        return ProcessAreaLight(light_node);
+    }
+    else if (!light_type.compare("direction light"))
+    {
+        return ProcessDirLight(light_node);
+    }
+}
 
+bool SDescFileLoader::ProcessDirLight(pugi::xml_node &light_node)
+{
+    pugi::xml_node node_clr = light_node.select_node("color").node();
+    pugi::xml_node node_power = light_node.select_node("power").node();
+    pugi::xml_node node_angle = light_node.select_node("spread").node();
+    pugi::xml_node node_dir = light_node.select_node("direction").node();
+    
+    std::vector<float> clr, dir;
+    float power, angle;
+
+    std::stringstream parse_clr(node_clr.text().as_string()),
+                      parse_dir(node_dir.text().as_string());
+
+    std::istream_iterator<float> clr_iter(parse_clr), 
+                                 dir_iter(parse_dir);
+
+    parseString(clr_iter, clr);
+    parseString(dir_iter, dir);
+
+    power = node_power.text().as_float();
+    angle = node_angle.text().as_float();
+
+    Color light_clr(clr[0], clr[1], clr[2]);
+    cblt::Vec3 light_dir(dir[0], dir[1], dir[2]);         
+
+    std::shared_ptr<cblt::Light> light = std::make_shared<cblt::DirectionLight>(light_dir, light_clr, power, angle);
+    
+    lights_.push_back(light);
+    return true;
+}
+
+bool SDescFileLoader::ProcessAreaLight(pugi::xml_node &light_node)
+{
     pugi::xml_node node_clr = light_node.select_node("color").node();
     pugi::xml_node node_length = light_node.select_node("length").node();
     pugi::xml_node node_width = light_node.select_node("width").node();
@@ -267,15 +311,6 @@ bool SDescFileLoader::ProcessLight(pugi::xml_node &light_node)
                light_w_d(dir_z[0], dir_z[1], dir_z[2]);
 
     std::shared_ptr<cblt::Light> light = std::make_shared<cblt::AreaLight>(light_pos, light_l_d, light_dir, light_w_d, light_clr, power, length, width);
-    
-    std::string light_type(light_node.attribute("type").as_string()); 
-    std::string light_id(light_node.attribute("ID").as_string());
-
-    /*if (light_type.compare("area light") == 0)
-    {
-        // area lights have geometry, so they are considered geometry
-        mesh_map_[light_id] = std::dynamic_pointer_cast<cblt::Geometry>(light); 
-    }*/
     
     lights_.push_back(light);
     return true;

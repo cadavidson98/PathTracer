@@ -75,52 +75,6 @@ namespace cblt
         return in;
     }
 
-    /*
-    bool AreaLight::Intersect(const Ray &ray, HitInfo &collision_pt)
-    {
-        float dt = Dot(ray.dir, Y_axis_F);
-  	    if (std::abs(dt) < eps_zero_F) {
-  	        // the ray is parallel, so return false
-  	        return false;
-  	    }
-
-  	    float hit_t = -Dot(Vec3(0.f) - ray.pos, Y_axis_F) / dt;
-  	    if (hit_t < eps_zero_F) {
-  	        // only go forward in the direction
-  	        return false;
-  	    }
-	
-  	    Vec3 hit_pos = ray.pos + ray.dir * hit_t;
-        hit_pos.y = 0.f;  // avoid floating pt imprecision
-        // use same-sided test to check that our point is in the quad
-        Vec3 edge1 = { length_, 0.f, 0.f };
-        Vec3 edge2 = { 0.f, 0.f, width_ };
-        Vec3 edge3 = { -length_, 0.f, 0.f };
-        Vec3 edge4 = { 0.f, 0.f, -width_ };
-
-        Vec3 A = hit_pos - Vec3(-.5f * length_, 0.f, -.5f * width_);
-        Vec3 B = hit_pos - Vec3( .5f * length_, 0.f, -.5f * width_);
-        Vec3 C = hit_pos - Vec3( .5f * length_, 0.f,  .5f * width_);
-        Vec3 D = hit_pos - Vec3(-.5f * length_, 0.f,  .5f * width_);
-        bool in =   Dot(A, edge1) >= 0.f &&
-                    Dot(B, edge2) >= 0.f &&
-                    Dot(C, edge3) >= 0.f &&
-                    Dot(D, edge4) >= 0.f;
-
-        if (in)
-        {
-            collision_pt.hit_time = hit_t;
-            collision_pt.norm = Y_axis_F;
-            collision_pt.pos = hit_pos;
-            // experiments with Cycles show that area light actually are lambertian diffusers
-            // in addition to Lambertian emitters. So, we try add a lambertian diffuse material
-            // to this area light and seeing what happens if the Area Light is struck
-            collision_pt.m = mat_;
-            collision_pt.light = this;
-        }
-        return in;
-    }*/
-
     BoundingBox AreaLight::GetBounds()
     {
         Vec3 min_pt(-.5f * length_, 0.f, -.5f * width_), 
