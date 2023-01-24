@@ -111,7 +111,7 @@ namespace cblt
     void CookTorrenceMaterial::RandomUnitVectorInGGX(const Vec3 &bitangent, const Vec3 &normal, const Vec3 &tangent, 
                                                      const Vec3 &outgoing, Vec3 &result, float &pdf, std::shared_ptr<Sampler> generator) {
         Mat4 Tan_To_World(Vec4(bitangent, 0.f), Vec4(normal, 0.f), Vec4(tangent, 0.f), Vec4(0.f, 0.f, 0.f, 1.f));
-        Mat4 World_To_Tan = Inverse(Tan_To_World);
+        Mat4 World_To_Tan = OrthoInverse(Tan_To_World);
         Vec4 out_tan = World_To_Tan * Vec4(outgoing, 0.f);
         Vec3 w_o = Vec3(out_tan.x, out_tan.y, out_tan.z);
 

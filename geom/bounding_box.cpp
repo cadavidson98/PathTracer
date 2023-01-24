@@ -36,27 +36,27 @@ namespace cblt {
     bool BoundingBox::Intersect(const Ray &ray, float &intersect_time)
     {
         float tmin(-inf_F), tmax(inf_F);
-        float tx1 = (min_.x - ray.pos.x) * ray.inv.x;
-        float tx2 = (max_.x - ray.pos.x) * ray.inv.x;
-    
-	    tmin = std::max(tmin, std::min(tx1, tx2));
-        tmax = std::min(tmax, std::max(tx1, tx2));
-    
-	    float ty1 = (min_.y - ray.pos.y) * ray.inv.y;
-        float ty2 = (max_.y - ray.pos.y) * ray.inv.y;
-    
-	    tmin = std::max(tmin, std::min(ty1, ty2));
-        tmax = std::min(tmax, std::max(ty1, ty2));
-    
-	    float tz1 = (min_.z - ray.pos.z) * ray.inv.z;
-        float tz2 = (max_.z - ray.pos.z) * ray.inv.z;
-    
-	    tmin = std::max(tmin, std::min(tz1, tz2));
-        tmax = std::min(tmax, std::max(tz1, tz2));
-    
-	    if(tmax > 0 && tmax >= tmin)
+        float t1[3], t2[3];
+        // looping so compiler can more explicitly unroll & pack into SIMD registers
+        for (int i = 0; i < 3; ++i)
         {
-            intersect_time = (tmin >= 0) ? tmin : tmax;
+            t1[i] = (min_.xyz[i] - ray.pos.xyz[i]) * ray.inv.xyz[i];
+            t2[i] = (max_.xyz[i] - ray.pos.xyz[i]) * ray.inv.xyz[i];
+        }
+
+        tmin = std::min(t1[0], t2[0]);
+        tmax = std::max(t1[0], t2[0]);
+      
+	    tmin = std::max(tmin, std::min(t1[1], t2[1]));
+        tmax = std::min(tmax, std::max(t1[1], t2[1]));
+    	    
+	    tmin = std::max(tmin, std::min(t1[2], t2[2]));
+        tmax = std::min(tmax, std::max(t1[2], t2[2]));
+        
+        if (tmax > 0.f && tmax >= tmin)
+        {
+            float use_min = static_cast<float>(tmin >= 0.f);
+            intersect_time = use_min * tmin + !use_min * tmax;
             return true;
         }
         return false;

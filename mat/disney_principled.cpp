@@ -51,7 +51,7 @@ namespace cblt
             BRDF_sampler->Next2D(u1, u2);
 
             Mat4 Tan_To_World(Vec4(bitangent, 0.f), Vec4(collision_pt.norm, 0.f), Vec4(tangent, 0.f), Vec4(0.f, 0.f, 0.f, 1.f));
-            Mat4 World_To_Tan = Inverse(Tan_To_World);
+            Mat4 World_To_Tan = OrthoInverse(Tan_To_World);
             Vec4 out_tan = World_To_Tan * Vec4(outgoing, 0.f);
             Vec3 w_o(out_tan.x, out_tan.y, out_tan.z);
 
@@ -83,6 +83,12 @@ namespace cblt
     Color DisneyPrincipledMaterial::BRDF(const Vec3 &incoming, const Vec3 &outgoing, const HitInfo &collision_pt, float &pdf)
     {
         float d_pdf, s_pdf, c_pdf;
+        if (Dot(incoming, collision_pt.norm) < eps_zero_F || Dot(outgoing, collision_pt.norm) < eps_zero_F)
+        {
+            // no support for transmission (yet), so any event below the hemisphere should be non-existant
+            pdf = 0.f;
+            return Color::GreyScale(0.f);
+        }
 
         Vec3 halfway = Normalize(incoming + outgoing);
         Color diffuse = DisneyDiffuse(incoming, outgoing, halfway, collision_pt, d_pdf);

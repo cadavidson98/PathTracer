@@ -66,7 +66,7 @@ namespace cblt {
   	        return false;
   	    }
 	
-  	    Vec3 hit_pos = ray.pos + ray.dir * hit_t;
+  	    Vec3 hit_pos = ray.dir * hit_t + ray.pos;
   	    // now check if it is inside the triangle using barycentric coordinates
   	    float a, b, c;
 	

@@ -10,7 +10,7 @@
 namespace cblt {
     template <class T>
     BoundingVolume<T>::BoundingVolume() {
-        max_prims_in_leaf_ = 4;
+        max_prims_in_leaf_ = 255;
         BoundingNode root;
         tree_.push_back(root);
     }
@@ -18,7 +18,7 @@ namespace cblt {
     template <class T>
     BoundingVolume<T>::BoundingVolume(std::vector<std::shared_ptr<T>> &prims)
     {
-        max_prims_in_leaf_ = 4;
+        max_prims_in_leaf_ = 16;
         // get the bounds of the primitives, and store them in primitive info structures
         std::vector<PrimInfo> prims_info;
         prims_info.reserve(prims.size());
@@ -124,7 +124,6 @@ namespace cblt {
             tree_.push_back(r_child);
 
             tree_[node_offset].bnds_ = GetExtent(prim_start, prim_end);
-            tree_[node_offset].l_child_ = node_offset + 1;
             tree_[node_offset].r_child_ = node_offset + 2;
             return;
         }
@@ -136,7 +135,6 @@ namespace cblt {
             tree_.push_back(l_child);
 
             tree_[node_offset].bnds_ = GetExtent(prim_start, prim_end);
-            tree_[node_offset].l_child_ = node_offset + 1;
             return;
         }
         else if (std::distance(prim_start, prim_end) <= 0) {
@@ -149,7 +147,6 @@ namespace cblt {
         PrimIter prim_mid;
         if (!SplitSAH(prim_start, prim_end, prim_mid)) {
             // stop recursing, since the sub-child split would be worse than the current split
-            tree_[node_offset].l_child_ = 
             tree_[node_offset].r_child_ = -1;
             for (PrimIter iter = prim_start; iter != prim_end; iter++) {
                 tree_[node_offset].prims_.push_back(iter->elem_);
@@ -162,7 +159,6 @@ namespace cblt {
         BoundingNode new_node;
         tree_.push_back(new_node);
         int l_offset = node_offset + 1;
-        tree_[node_offset].l_child_ = l_offset;
         BuildRecurse(l_offset, prim_start, prim_mid);
 
         // create right child
@@ -209,7 +205,7 @@ namespace cblt {
         float range = ranges[axis];      
         float centroid_max = (axis == 0) ? centroid_bnds.max_.x : (axis == 1) ? centroid_bnds.max_.y : centroid_bnds.max_.z;
         float centroid_min = (axis == 0) ? centroid_bnds.min_.x : (axis == 1) ? centroid_bnds.min_.y : centroid_bnds.min_.z;
-        for(PrimIter iter = prim_start; iter != prim_end; ++iter) {
+        for (PrimIter iter = prim_start; iter != prim_end; ++iter) {
             // find out what bin this triangle belongs in
             // this can be done by manually finding the threshhold value
             // or just normalizing its value
@@ -318,54 +314,50 @@ namespace cblt {
      * @return true/false If the ray has collided with a triangle 
      */
     template <class T>
-    bool BoundingVolume<T>::IntersectIterative(const Ray &ray, HitInfo &hit) {
+    bool BoundingVolume<T>::IntersectIterative(const Ray &ray, HitInfo &hit)
+    {
+        HitInfo prim_hit;
+        
         int nodes[2048];
         int stack_idx = 0;
-        //std::stack<int, std::vector<int>> nodes;
-        //nodes.push(0);
         nodes[0] = 0;
         float best_time = hit.hit_time;
         bool result = false;
-        while(/*!nodes.empty()*/ stack_idx >= 0) {
-            //int cur_node_idx = nodes.top();
-            //nodes.pop();
+        while(stack_idx >= 0)
+        {
             int cur_node_idx = nodes[stack_idx--];
-
-            if (cur_node_idx == -1) {
-                continue;
-            }
 
             BoundingNode &cur_node = tree_[cur_node_idx];
             float i_time = inf_F;
-            if(!cur_node.bnds_.Intersect(ray, i_time) || i_time > best_time) {
+            if(!cur_node.bnds_.Intersect(ray, i_time) || i_time > best_time)
+            {
                 // Either this node does exist, the ray doesn't collide with it, or we have already found a closer
                 // prim, so there is no reason to check this node
                 continue;
             }
             
-            if(cur_node.l_child_ == -1 && cur_node.r_child_ == -1) {
+            if(cur_node.prims_.size() > 0)
+            {
                 // check to see if there is a collision
-                HitInfo prim_hit;
-                prim_hit.hit_time = inf_F;
-                for (const std::shared_ptr<T> &prim : cur_node.prims_) {
-                    HitInfo other_hit;
-                    other_hit.hit_time = inf_F;
-                    result = prim->Intersect(ray, other_hit) || result;
-                    prim_hit = (other_hit.hit_time < prim_hit.hit_time) ? other_hit : prim_hit;
-                }
-                if (prim_hit.hit_time < hit.hit_time)
+                for (const std::shared_ptr<T> &prim : cur_node.prims_)
                 {
-                    // this is a closer item than the previous one
-                    hit = prim_hit;
-                    best_time = hit.hit_time;
+                    prim_hit.hit_time = inf_F;
+                    result = prim->Intersect(ray, prim_hit) || result;
+                    if (prim_hit.hit_time < hit.hit_time)
+                    {
+                        // this is a closer item than the previous one
+                        hit = prim_hit;
+                        best_time = hit.hit_time;
+                    }
                 }
             }
-            else {
-                // add child nodes to the stack
-                //nodes.push(cur_node.r_child_);
-                //nodes.push(cur_node.l_child_);
-                nodes[++stack_idx] = cur_node.r_child_;
-                nodes[++stack_idx] = cur_node.l_child_;
+            else
+            {
+                if (cur_node.r_child_ != -1)
+                {
+                    nodes[++stack_idx] = cur_node.r_child_;
+                }
+                nodes[++stack_idx] = cur_node_idx + 1;
             }
         }
         return result;

@@ -10,22 +10,28 @@
 #include <vector>
 #include <memory>
 
-using namespace std;
+struct RenderSettings
+{
+    int img_width;
+    int img_height;
+    int num_samples;
+    int num_threads;
+    int path_depth;
+    int tile_size;
+};
 
-class RayTracer {
+class RayTracer
+{
 public:
-    RayTracer(shared_ptr<cblt::Scene> &image_scene_);
+    RayTracer(int width, int height, std::shared_ptr<cblt::Scene> &image_scene_);
+    RayTracer(const RenderSettings &settings, std::shared_ptr<cblt::Scene> &image_scene_);
     ~RayTracer();
-    shared_ptr<Image> Render(int width, int height);
+    std::shared_ptr<Image> Render();
 private:
-    int max_depth_;
-    int num_samples_;    
-    shared_ptr<cblt::Scene> image_scene_;
+    RenderSettings image_settings_;
+    std::shared_ptr<cblt::Scene> image_scene_;
 
-    //Color PathTrace(cblt::Ray ray, int depth, shared_ptr<Sampler2D> generator, Color &path_throughput);
-    Color PathTraceIterative(cblt::Ray cam_ray, shared_ptr<cblt::Sampler> &generator);
-    //Color RayCast(cblt::Ray ray, shared_ptr<Sampler2D> generator);
-    //Color SampleLights(const cblt::Ray &incoming, const cblt::HitInfo &surface, shared_ptr<Sampler2D> generator);
+    Color PathTraceIterative(cblt::Ray cam_ray, std::shared_ptr<cblt::Sampler> &generator);
     bool SceneIntersect(cblt::Ray ray, cblt::HitInfo &hit);
 };
 

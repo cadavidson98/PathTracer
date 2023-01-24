@@ -79,7 +79,7 @@ namespace cblt
                                        const float alpha, float &pdf, const float u1, const float u2)
     {
         Mat4 Tan_To_World(Vec4(bitangent, 0.f), Vec4(normal, 0.f), Vec4(tangent, 0.f), Vec4(0.f, 0.f, 0.f, 1.f));
-        Mat4 World_To_Tan = Inverse(Tan_To_World);
+        Mat4 World_To_Tan = OrthoInverse(Tan_To_World);
         Vec4 out_tan = World_To_Tan * Vec4(outgoing, 0.f);
         Vec3 w_o = { out_tan.x, out_tan.y, out_tan.z };
 
@@ -118,7 +118,7 @@ namespace cblt
     inline Vec3 RandomUnitVectorInGGX(const Vec3 &bitangent, const Vec3 &normal, const Vec3 &tangent, const Vec3 &outgoing, 
                                       const float alpha, float &pdf, const float u1, const float u2) {
         Mat4 Tan_To_World(Vec4(bitangent, 0.f), Vec4(normal, 0.f), Vec4(tangent, 0.f), Vec4(0.f, 0.f, 0.f, 1.f));
-        Mat4 World_To_Tan = Inverse(Tan_To_World);
+        Mat4 World_To_Tan = OrthoInverse(Tan_To_World);
         Vec4 out_tan = World_To_Tan * Vec4(outgoing, 0.f);
         Vec3 w_o = { out_tan.x, out_tan.y, out_tan.z };
 
@@ -158,7 +158,7 @@ namespace cblt
     inline Vec3 RandomUnitVectorInGGXAniso(const Vec3 &bitangent, const Vec3 &normal, const Vec3 &tangent, const Vec3 &outgoing, 
                                       const float alpha_x, const float alpha_y, float &pdf, const float u1, const float u2) {
         Mat4 Tan_To_World(Vec4(bitangent, 0.f), Vec4(normal, 0.f), Vec4(tangent, 0.f), Vec4(0.f, 0.f, 0.f, 1.f));
-        Mat4 World_To_Tan = Inverse(Tan_To_World);
+        Mat4 World_To_Tan = OrthoInverse(Tan_To_World);
         Vec4 out_tan = World_To_Tan * Vec4(outgoing, 0.f);
         Vec3 w_o = { out_tan.x, out_tan.y, out_tan.z };
 

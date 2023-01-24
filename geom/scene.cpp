@@ -98,7 +98,12 @@ namespace cblt
                 radiance = surf_refl * light_rad * MIS / light_pdf;
             }
         }
-
+        if (light->isDiracDelta())
+        {
+            // prevent multiple importance sampling when the light is a dirac delta
+            // BUT is occluded
+            return radiance;
+        }
         // now sample the BRDF
         Vec3 brdf_dir;
         float brdf_pdf;

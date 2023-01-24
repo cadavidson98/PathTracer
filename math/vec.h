@@ -8,8 +8,15 @@ namespace cblt {
         public:
             Vec2(float x = 0, float y = 0);
 
-            float x;
-            float y;
+            union
+            {
+                float xy[2];
+                struct
+                {
+                    float x;
+                    float y;
+                };
+            };
 
             Vec2 friend operator /(const float& lhs, const Vec2& rhs);
             Vec2 friend operator *(const float& lhs, const Vec2& rhs);
@@ -47,10 +54,16 @@ namespace cblt {
 
             Vec3(float x = 0, float y = 0, float z = 0);
             Vec3(const Vec2 &xy, float z);
-        
-            float x;
-            float y;
-            float z;
+            union
+            {
+                float xyz[3];
+                struct
+                {
+                    float x;
+                    float y;
+                    float z;
+                };
+            };
 
             Vec3 friend operator /(const float& lhs, const Vec3& rhs);
             Vec3 friend operator *(const float& lhs, const Vec3& rhs);
@@ -63,7 +76,7 @@ namespace cblt {
     };
 
     inline float Dot(const Vec3 &lhs, const Vec3 &rhs) {
-        return lhs.x * rhs.x + lhs.y * rhs.y + lhs.z * rhs.z;
+        return std::fmaf(lhs.x, rhs.x, std::fmaf(lhs.y, rhs.y, lhs.z * rhs.z));
     }
 
     inline float AbsDot(const Vec3 &lhs, const Vec3 &rhs) {
@@ -95,10 +108,17 @@ namespace cblt {
             Vec4(const Vec2 &xy, float z, float w);
             Vec4(const Vec3 &xyz, float w);
         
-            float x;
-            float y;
-            float z;
-            float w;
+            union
+            {
+                float xyzw[4];
+                struct
+                {
+                    float x;
+                    float y;
+                    float z;
+                    float w;
+                };
+            };
 
             Vec4 friend operator /(const float& lhs, const Vec4& rhs);
             Vec4 friend operator *(const float& lhs, const Vec4& rhs);

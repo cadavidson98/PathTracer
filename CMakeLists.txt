@@ -16,7 +16,7 @@ file(GLOB_RECURSE MATH_HEADER math/*.h)
 set(LIGHT_SOURCE ${LIGHT_DIR}/area_light.cpp ${LIGHT_DIR}/direction_light.cpp)
 set(LIGHT_HEADER ${LIGHT_DIR}/light.h ${LIGHT_DIR}/area_light.h ${LIGHT_DIR}/direction_light.h)
 
-file(GLOB_RECURSE GEOM_SOURCE geom/*.cpp)
+file(GLOB_RECURSE GEOM_SOURCE geom/*.cpp geom/bounding_volume.tpp)
 file(GLOB_RECURSE GEOM_HEADER geom/*.h)
 
 file(GLOB_RECURSE CORE_SOURCE src/*.cpp)

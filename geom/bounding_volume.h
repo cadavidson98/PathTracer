@@ -19,16 +19,15 @@ namespace cblt {
             BoundingVolume(std::vector<std::shared_ptr<T>> &prims, std::function<BoundingBox(T)> bounds_calc);
             bool Intersect(const Ray& ray, HitInfo &collison_pt);
             BoundingBox GetBounds() const;
+
+        private:
+
             struct BoundingNode {
                 BoundingBox bnds_;  //! bounding box which encapsulates the node
-                int l_child_ = -1;  //! integer offset to left child node
+                //int l_child_ = -1;  //! integer offset to left child node
                 int r_child_ = -1;  //! integer offset to right child node
                 std::vector<std::shared_ptr<T>> prims_;  //! integer offsets to all primitives in this node
             };
-
-            std::vector<BoundingNode> *Tree() {return &tree_; };
-
-        private:
 
             struct PrimInfo {
                 PrimInfo()
