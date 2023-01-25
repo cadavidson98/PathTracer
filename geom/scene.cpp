@@ -104,6 +104,7 @@ namespace cblt
             // BUT is occluded
             return radiance;
         }
+        
         // now sample the BRDF
         Vec3 brdf_dir;
         float brdf_pdf;

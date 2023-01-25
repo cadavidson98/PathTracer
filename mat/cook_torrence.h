@@ -14,20 +14,12 @@ namespace cblt
         Color BRDF(const Vec3 &incoming, const Vec3 &outgoing, const HitInfo &collision_pt, float &pdf);
         Color Emittance();
     private:
-
-        void RandomUnitVectorInHemisphere(const Vec3 &bitangent, const Vec3 &norm, const Vec3 &tangent, Vec3 &result, std::shared_ptr<Sampler> generator);
-        void RandomUnitVectorInGGX(const Vec3 &bitangent, const Vec3 &norm, const Vec3 &tangent, const Vec3 &incoming, Vec3 &result, float &pdf, std::shared_ptr<Sampler> generator);
-        float GGXDisbritution(float cos_theta);
-        float SmithGeometry(const Vec3 &omega, const Vec3 &normal, const Vec3 &halfway);
-        float SchlickFresnel(float F0, float cos_theta);
         Color albedo_;
         Color specular_;
         Color emissive_;
         float ior_;
         float roughness_;
         float metalness_;
-
-        float lambertian_pdf_;
     };
 }
 #endif  // CBLT_COOK_TORRENCE_H

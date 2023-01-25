@@ -10,7 +10,7 @@ namespace cblt
                          color_(clr), length_(length), width_(width)
     {
         area_ = length_ * width_;
-        power_ = energy / (PI_f * area_) * .8f;
+        power_ = energy / (PI_f * area_);
     }
 
     Color AreaLight::Sample(Vec3 &to_light, const Vec3 &surf_pos, const Vec3 &surf_norm, float &dist, float &pdf, std::shared_ptr<Sampler> &sampler)
@@ -85,14 +85,12 @@ namespace cblt
     Color AreaLight::Radiance(const Vec3 &light_pos, const Vec3 &surf_pos, const Vec3 &surf_norm, float &pdf)
     {
         // Area lighting Integral from Sebastian Legarde "Moving Frostbite to PBR 3.0"
-        // all arguments are assumed to be in the light's local coordinate system
-        // Y axis is the light's normal, and the origin is the light center
-        // return color_;
+        // We need to account for the distance attenuation when directly sampling the area light
         Vec3 to_light = light_pos - surf_pos;
         float length_sqr = MagnitudeSqr(to_light);
         // Normalize
         to_light = to_light / std::sqrt(length_sqr);
-
+        pdf = 1.f / area_;
         return color_ * power_ * std::max(0.f, -Dot(to_light, dir_Y_)) / length_sqr;
     }
 }

@@ -132,9 +132,21 @@ bool SDescFileLoader::ProcessPrincipledMaterial(pugi::xml_node &mat_node)
     const char * text = clr.first_child().text().as_string();
     std::stringstream parse(text);
     std::istream_iterator<float> iter(parse);
+    
+    std::string clr_type = clr.attribute("format").as_string();
     std::vector<float> clr_vals;
-    parseString(iter, clr_vals);
-    Color mat_base(clr_vals[0], clr_vals[1], clr_vals[2]);
+    std::shared_ptr<Image> base = nullptr;
+    Color mat_base;
+    if (clr_type.compare("rgba") == 0)
+    {
+        parseString(iter, clr_vals);
+        mat_base = Color(clr_vals[0], clr_vals[1], clr_vals[2]);
+    }
+    else if (clr_type.compare("texture") == 0)
+    {
+        std::string file_name = clr.text().as_string();
+        base = std::make_shared<Image>(file_name.c_str());
+    }
     // get scalar attribs
     float mat_sub = mat_node.select_node("Subsurface").node().text().as_float();
     float mat_met = mat_node.select_node("Metallic").node().text().as_float();
@@ -148,6 +160,11 @@ bool SDescFileLoader::ProcessPrincipledMaterial(pugi::xml_node &mat_node)
     float mat_clear_coat = mat_node.select_node("Clearcoat_Gloss").node().text().as_float();
     float mat_ior = mat_node.select_node("IOR").node().text().as_float();
     std::shared_ptr<cblt::Material> material = std::make_shared<cblt::DisneyPrincipledMaterial>(mat_base, mat_sub, mat_met, mat_spec, mat_spec_tint, mat_rough, mat_aniso, mat_shn, mat_shn_tint, mat_clear, mat_clear_coat, mat_ior, false);
+    if (base != nullptr)
+    {
+        material->SetBaseImage(base);
+    }
+
     material_map_[std::string(mat_node.attribute("ID").as_string())] = material;
     return true;
 }
@@ -190,33 +207,83 @@ bool SDescFileLoader::ProcessTorrenceMaterial(pugi::xml_node &mat_node)
 
 bool SDescFileLoader::ProcessMesh(pugi::xml_node &mesh_node)
 {
-    pugi::xml_node node_verts = mesh_node.select_node("positions").node();
-    pugi::xml_node node_tris = mesh_node.select_node("indices").node();
-    std::string mat_name = mesh_node.select_node("surface_material").node().text().as_string();
+    pugi::xml_node &node_verts = mesh_node.select_node("positions").node();
+    pugi::xml_node &node_tris  = mesh_node.select_node("indices").node();
+    pugi::xml_node &node_surfs = mesh_node.select_node("surface_materials").node();
+    pugi::xml_node &node_mats  = mesh_node.select_node("materials").node();
+    // optional
+    pugi::xml_node &node_norms = mesh_node.select_node("normals").node();
+    pugi::xml_node &node_uvs   = mesh_node.select_node("uvs").node();
     
-    std::vector<float> verts_arr;
-    std::vector<int> ind_arr;
+    std::vector<float> verts_arr, norms_arr, uvs_arr;
+    std::vector<int> ind_arr, mat_ind_arr;
+    std::vector<std::string> surfs_arr;
     
     std::stringstream parse_vert(node_verts.text().as_string());
     std::istream_iterator<float> vert_iter(parse_vert);
     parseString(vert_iter, verts_arr);
+    
     std::stringstream parse_ind(node_tris.text().as_string());
     std::istream_iterator<int> ind_iter(parse_ind);
     parseString(ind_iter, ind_arr);
+    
+    std::stringstream parse_surfs(node_surfs.text().as_string());
+    std::istream_iterator<std::string> surfs_iter(parse_surfs);
+    parseString(surfs_iter, surfs_arr);
 
-    std::shared_ptr<cblt::Material> material = material_map_[mat_name];
+    std::stringstream parse_mat_ind(node_mats.text().as_string());
+    std::istream_iterator<int> mat_ind_iter(parse_mat_ind);
+    parseString(mat_ind_iter, mat_ind_arr);
+
+    if (node_norms)
+    {
+        std::stringstream parse_norm(node_norms.text().as_string());
+        std::istream_iterator<float> norm_iter(parse_norm);
+        parseString(norm_iter, norms_arr);
+    }
+
+    if (node_uvs)
+    {
+        std::stringstream parse_uv(node_uvs.text().as_string());
+        std::istream_iterator<float> uv_iter(parse_uv);
+        parseString(uv_iter, uvs_arr);
+    }
 
     std::vector<std::shared_ptr<cblt::Triangle>> mesh;
-    for (int i = 0; i < ind_arr.size(); i += 3)
+    int num_tris = ind_arr.size() / 3;
+    for (int i = 0; i < num_tris; ++i)
     {
-        int id1 = ind_arr[i];
-        int id2 = ind_arr[i + 1];
-        int id3 = ind_arr[i + 2];
+        int id1 = ind_arr[3 * i];
+        int id2 = ind_arr[3 * i + 1];
+        int id3 = ind_arr[3 * i + 2];
         cblt::Vec3 pos1(verts_arr[3 * id1], verts_arr[3 * id1 + 1], verts_arr[3 * id1 + 2]);
         cblt::Vec3 pos2(verts_arr[3 * id2], verts_arr[3 * id2 + 1], verts_arr[3 * id2 + 2]);
         cblt::Vec3 pos3(verts_arr[3 * id3], verts_arr[3 * id3 + 1], verts_arr[3 * id3 + 2]);
+        std::shared_ptr<cblt::Material> &cur_mat = material_map_[surfs_arr[mat_ind_arr[i]]];
+        
+        if (node_norms && node_uvs)
+        {
+            cblt::Vec3 norm1(norms_arr[3 * id1], norms_arr[3 * id1 + 1], norms_arr[3 * id1 + 2]);
+            cblt::Vec3 norm2(norms_arr[3 * id2], norms_arr[3 * id2 + 1], norms_arr[3 * id2 + 2]);
+            cblt::Vec3 norm3(norms_arr[3 * id3], norms_arr[3 * id3 + 1], norms_arr[3 * id3 + 2]);
 
-        mesh.push_back(std::make_shared<cblt::Triangle>(pos1, pos2, pos3, material));
+            cblt::Vec2 uv1(uvs_arr[2 * id1], uvs_arr[2 * id1 + 1]);
+            cblt::Vec2 uv2(uvs_arr[2 * id2], uvs_arr[2 * id2 + 1]);
+            cblt::Vec2 uv3(uvs_arr[2 * id3], uvs_arr[2 * id3 + 1]);
+            mesh.push_back(std::make_shared<cblt::Triangle>(pos1, pos2, pos3, norm1, norm2, norm3, uv1, uv2, uv3, cur_mat));
+        }
+        else if (node_norms)
+        {
+            cblt::Vec3 norm1(norms_arr[3 * id1], norms_arr[3 * id1 + 1], norms_arr[3 * id1 + 2]);
+            cblt::Vec3 norm2(norms_arr[3 * id2], norms_arr[3 * id2 + 1], norms_arr[3 * id2 + 2]);
+            cblt::Vec3 norm3(norms_arr[3 * id3], norms_arr[3 * id3 + 1], norms_arr[3 * id3 + 2]);
+
+            mesh.push_back(std::make_shared<cblt::Triangle>(pos1, pos2, pos3, norm1, norm2, norm3, cur_mat));
+        }
+        else
+        {
+            mesh.push_back(std::make_shared<cblt::Triangle>(pos1, pos2, pos3, cur_mat));
+        }
     }
 
     std::shared_ptr<cblt::Geometry> model = std::make_shared<cblt::TriangleMesh>(mesh);

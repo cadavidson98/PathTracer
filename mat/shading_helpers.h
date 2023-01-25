@@ -35,9 +35,6 @@ namespace cblt
     {
         float A = cblt::sqr(cos_phi / alpha_x) + cblt::sqr(sin_phi / alpha_y);
         float denom = cblt::PI_f * alpha_x * alpha_y * cblt::sqr(cblt::sqr(cos_theta) + A);
-        //float other_denom = cblt::PI_f * alpha_x * alpha_y * cblt::sqr(cblt::sqr(cos_theta)*(1.f - A) + A);
-        //float tan_sqr = (1.f - cblt::sqr(cos_theta)) / cblt::sqr(cos_theta);
-        //float ref = PI_f * alpha_x * alpha_y * sqr(sqr(cos_theta)) * sqr(1.f + tan_sqr * (A));
         return 1.f / denom;
     }
 

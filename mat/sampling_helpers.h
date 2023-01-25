@@ -192,7 +192,6 @@ namespace cblt
         Vec3 w_i = Normalize(2.f * O_dot_S * sample - w_o);
         
         // calculate the pdf for the reflection vector in cartesian coords
-        // float pdf_other = GGX(sample.y, alpha_x) * cos_theta / (4.f * O_dot_S);
         pdf = GGX_aniso(alpha_x, alpha_y, sample.x, sample.z, sample.y) * cos_theta / (4.f * O_dot_S);
     
         // take back from tangent space to world space

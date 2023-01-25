@@ -80,6 +80,9 @@ namespace cblt
         return BRDF(incoming, outgoing, collision_pt, pdf);
     }
 
+    // nomenclature guide:
+    // incoming -> omega_i -> toLight (L) -> The light arriving at this point
+    // outgoing -> omega_o -> toEye (V) -> The light reflected at this point
     Color DisneyPrincipledMaterial::BRDF(const Vec3 &incoming, const Vec3 &outgoing, const HitInfo &collision_pt, float &pdf)
     {
         float d_pdf, s_pdf, c_pdf;
@@ -114,7 +117,7 @@ namespace cblt
         
         // retro-reflection
         float retro_refl = fresnel_d90 * (fresnel_i + fresnel_o + fresnel_i * fresnel_o * (fresnel_d90 - 1.f));
-        // Hannan-Kruegar sub surface
+        // TODO: Proper Subsurface
         /*float fresnel_ss90 = rough_ * cblt::sqr(h_dot_i);
         float subsurface = 1.25f * 
             (cblt::lerp(1.f, fresnel_ss90, n_dot_i) * cblt::lerp(1.f, fresnel_ss90, n_dot_o) *

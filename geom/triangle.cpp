@@ -11,7 +11,8 @@ namespace cblt {
 	};
 
     Triangle::Triangle(const Vec3 &p1, const Vec3 &p2, const Vec3 &p3, std::shared_ptr<Material> &mat) :
-    pos1_(p1), pos2_(p2), pos3_(p3) {
+    pos1_(p1), pos2_(p2), pos3_(p3)
+    {
         use_vertex_norms_ = use_vertex_uvs_ = false;
         // calculate the per-face normal
         Vec3 v1 = pos3_ - pos1_;
@@ -24,7 +25,8 @@ namespace cblt {
 
     Triangle::Triangle(const Vec3 &p1, const Vec3 &p2, const Vec3 &p3, 
                        const Vec3 &n1, const Vec3 &n2, const Vec3 &n3, std::shared_ptr<Material> &mat) :
-    pos1_(p1), pos2_(p2), pos3_(p3), norm1_(n1), norm2_(n2), norm3_(n3) {
+    pos1_(p1), pos2_(p2), pos3_(p3), norm1_(n1), norm2_(n2), norm3_(n3)
+    {
         use_vertex_norms_ = true;
         use_vertex_uvs_ = false;
 		// calculate the per-face normal
@@ -41,7 +43,8 @@ namespace cblt {
                       const Vec2 &uv1, const Vec2 &uv2, const Vec2 &uv3, std::shared_ptr<Material> &mat) :
     pos1_(p1), pos2_(p2), pos3_(p3), 
     norm1_(n1), norm2_(n2), norm3_(n3),
-    uv1_(uv1), uv2_(uv2), uv3_(uv3) {
+    uv1_(uv1), uv2_(uv2), uv3_(uv3)
+    {
         use_vertex_norms_ = use_vertex_uvs_ = true;
 		// calculate the per-face normal
         Vec3 v1 = pos3_ - pos1_;
@@ -52,16 +55,19 @@ namespace cblt {
 		mat_ = mat;
     }
 
-    bool Triangle::Intersect(const Ray &ray, HitInfo &collision_pt) {
+    bool Triangle::Intersect(const Ray &ray, HitInfo &collision_pt)
+    {
 
   	    float dt = Dot(ray.dir, face_norm_);
-  	    if (std::abs(dt) < eps_zero_F) {
+  	    if (std::abs(dt) < eps_zero_F)
+        {
   	        // the ray is parallel, so return false
   	        return false;
   	    }
 
   	    float hit_t = Dot(pos1_ - ray.pos, face_norm_) / dt;
-  	    if (hit_t < eps_zero_F) {
+  	    if (hit_t < eps_zero_F)
+        {
   	        // only go forward in the direction
   	        return false;
   	    }
@@ -78,23 +84,26 @@ namespace cblt {
   	    b = Magnitude(Cross(to_p3, to_p1)) / face_norm_len_;
   	    c = Magnitude(Cross(to_p1, to_p2)) / face_norm_len_;
 		float one = 1.f + eps_zero_F;
-  	    if(a <= one && b <= one && c <= one && a + b + c <= one) {
+  	    if(a <= one && b <= one && c <= one && a + b + c <= one)
+        {
     	    collision_pt.pos = hit_pos;
     	    collision_pt.hit_time = hit_t;
     	
-    	    if (use_vertex_norms_) {
+    	    if (use_vertex_norms_)
+            {
                 collision_pt.norm = norm1_ * a + norm2_ * b + norm3_ * c;
 				collision_pt.norm = Normalize(collision_pt.norm);
             }
-			else {
+			else
+            {
 				collision_pt.norm = face_norm_;
 			}
     	
     	    collision_pt.m = mat_;
     	    Vec2 uv = uv1_ * a + uv2_ * b + uv3_ * c;
-    	    if (use_vertex_uvs_) {
-    	        // change of basis
-    	        /*Vec3 tangent = a * (t1_) + b * (t2_) + c * (t3_);
+    	    /*if (use_vertex_uvs_) {
+    	        // TODO: Move Texture sampling for normal vectors & base color to after the closest collision has been determined
+    	        Vec3 tangent = a * (t1_) + b * (t2_) + c * (t3_);
     	        Vec3 bitangent = a * (bt1_) + b * (bt2_) + c * (bt3_);
     	        Vec3 normal = a * (n1_) + b * (n2_) + c * (n3_);
     	        Mat4 TBN(Vec4(tangent, 0), Vec4(bitangent, 0), Vec4(normal, 0), Vec4(0, 0, 0, 1));
@@ -102,21 +111,21 @@ namespace cblt {
     	        Color norm_clr = mat_->normal_map_->sample(hit.uv.x, hit.uv.y);
     	        Vec4 tex_norm = Vec4(norm_clr.r, norm_clr.g, norm_clr.b) * 2.f - 1.0f;
     	        tex_norm = TBN * tex_norm;
-    	        hit.norm = Vec3(tex_norm.x, tex_norm.y, tex_norm.z);*/
-    	    }
-		    if (Dot(collision_pt.norm, ray.dir) > 0.f) {
+    	        hit.norm = Vec3(tex_norm.x, tex_norm.y, tex_norm.z);
+    	    }*/
+		    if (Dot(collision_pt.norm, ray.dir) > 0.f)
+            {
 				// we are exiting this medium, since the normals are facing the same direction 
 				collision_pt.medium_ior = mat_->IOR();
 				collision_pt.norm = -collision_pt.norm;
 			}
-			else {
+			else
+            {
 				// we are entering the medium, so use 1.0 to represent air for now
 				collision_pt.medium_ior = 1.f;
 			}
-    	    
 		    return true;
   	    }
-
   	    return false;
     }
 
