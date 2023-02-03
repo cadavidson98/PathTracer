@@ -1,5 +1,7 @@
 #include "sdesc_file_loader.h"
 
+#include "mat/glossy.h"
+#include "mat/lambertian.h"
 #include "mat/cook_torrence.h"
 #include "mat/disney_principled.h"
 
@@ -49,6 +51,14 @@ std::shared_ptr<cblt::Scene> SDescFileLoader::LoadScene(std::string file_name)
         else if (!mat_type.compare("Cook Torrence Material"))
         {
             ProcessTorrenceMaterial(material);
+        }
+        else if (!mat_type.compare("Diffuse Material"))
+        {
+            ProcessDiffuseMaterial(material);
+        }
+        else if (!mat_type.compare("Glossy Material"))
+        {
+            ProcessGlossyMaterial(material);
         }
     }
 
@@ -160,10 +170,6 @@ bool SDescFileLoader::ProcessPrincipledMaterial(pugi::xml_node &mat_node)
     float mat_clear_coat = mat_node.select_node("Clearcoat_Gloss").node().text().as_float();
     float mat_ior = mat_node.select_node("IOR").node().text().as_float();
     std::shared_ptr<cblt::Material> material = std::make_shared<cblt::DisneyPrincipledMaterial>(mat_base, mat_sub, mat_met, mat_spec, mat_spec_tint, mat_rough, mat_aniso, mat_shn, mat_shn_tint, mat_clear, mat_clear_coat, mat_ior, false);
-    if (base != nullptr)
-    {
-        material->SetBaseImage(base);
-    }
 
     material_map_[std::string(mat_node.attribute("ID").as_string())] = material;
     return true;
@@ -205,15 +211,68 @@ bool SDescFileLoader::ProcessTorrenceMaterial(pugi::xml_node &mat_node)
     return true;
 }
 
+bool SDescFileLoader::ProcessDiffuseMaterial(pugi::xml_node &mat_node)
+{
+    pugi::xml_node albedo = mat_node.select_node("Color").node();
+    std::vector<float> clr_vec;
+    Color clr_val;
+
+    const char* txt = albedo.text().as_string();
+    std::stringstream parse(txt);
+    std::istream_iterator<float> iter(parse);
+    parseString(iter, clr_vec);
+
+    if (clr_vec.size() < 3)
+    {
+        return false;
+    }
+
+    clr_val.r = clr_vec[0];
+    clr_val.g = clr_vec[1];
+    clr_val.b = clr_vec[2];
+
+    std::shared_ptr<cblt::Material> material = std::make_shared<cblt::LambertianMaterial>(clr_val);
+    std::string name = std::string(mat_node.attribute("ID").as_string());
+    material_map_[name] = material;
+    return true;
+}
+
+bool SDescFileLoader::ProcessGlossyMaterial(pugi::xml_node &mat_node)
+{
+    pugi::xml_node albedo = mat_node.select_node("Color").node();
+    std::vector<float> clr_vec;
+    Color clr_val;
+    
+    const char *txt = albedo.text().as_string();
+    std::stringstream parse(txt);
+    std::istream_iterator<float> iter(parse);
+    parseString(iter, clr_vec);
+    
+    if (clr_vec.size() < 3)
+    {
+        return false;
+    }
+
+    clr_val.r = clr_vec[0];
+    clr_val.g = clr_vec[1];
+    clr_val.b = clr_vec[2];
+    
+    float roughness = mat_node.select_node("Roughness").node().text().as_float();
+
+    std::shared_ptr<cblt::Material> material = std::make_shared<cblt::GlossyMaterial>(clr_val, roughness);
+    material_map_[std::string(mat_node.attribute("ID").as_string())] = material;
+    return true;
+}
+
 bool SDescFileLoader::ProcessMesh(pugi::xml_node &mesh_node)
 {
-    pugi::xml_node &node_verts = mesh_node.select_node("positions").node();
-    pugi::xml_node &node_tris  = mesh_node.select_node("indices").node();
-    pugi::xml_node &node_surfs = mesh_node.select_node("surface_materials").node();
-    pugi::xml_node &node_mats  = mesh_node.select_node("materials").node();
+    pugi::xml_node node_verts = mesh_node.select_node("positions").node();
+    pugi::xml_node node_tris  = mesh_node.select_node("indices").node();
+    pugi::xml_node node_surfs = mesh_node.select_node("surface_materials").node();
+    pugi::xml_node node_mats  = mesh_node.select_node("materials").node();
     // optional
-    pugi::xml_node &node_norms = mesh_node.select_node("normals").node();
-    pugi::xml_node &node_uvs   = mesh_node.select_node("uvs").node();
+    pugi::xml_node node_norms = mesh_node.select_node("normals").node();
+    pugi::xml_node node_uvs   = mesh_node.select_node("uvs").node();
     
     std::vector<float> verts_arr, norms_arr, uvs_arr;
     std::vector<int> ind_arr, mat_ind_arr;
@@ -260,7 +319,10 @@ bool SDescFileLoader::ProcessMesh(pugi::xml_node &mesh_node)
         cblt::Vec3 pos2(verts_arr[3 * id2], verts_arr[3 * id2 + 1], verts_arr[3 * id2 + 2]);
         cblt::Vec3 pos3(verts_arr[3 * id3], verts_arr[3 * id3 + 1], verts_arr[3 * id3 + 2]);
         std::shared_ptr<cblt::Material> &cur_mat = material_map_[surfs_arr[mat_ind_arr[i]]];
-        
+        if (cur_mat.get() == nullptr)
+        {
+            int a = 0;
+        }
         if (node_norms && node_uvs)
         {
             cblt::Vec3 norm1(norms_arr[3 * id1], norms_arr[3 * id1 + 1], norms_arr[3 * id1 + 2]);

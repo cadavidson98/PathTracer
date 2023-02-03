@@ -77,7 +77,7 @@ namespace cblt
         
         Ray shadow_ray(collision_pt.pos + to_light * eps_zero_F, to_light);
         bool hit = ClosestIntersection(shadow_ray, occluder_info);
-        if (light_rad.Luminance() <= eps_zero_F || (light_len - occluder_info.hit_time) > eps_zero_F)
+        if (light_rad.Luminance() <= eps_zero_F || (hit && (light_len - occluder_info.hit_time) > eps_zero_F))
         {
             radiance = Color::GreyScale(0.f);
         }

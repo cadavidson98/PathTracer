@@ -19,6 +19,8 @@ class SDescFileLoader final : public FileLoader {
     bool ProcessCamera(pugi::xml_node &camera_node);
     bool ProcessPrincipledMaterial(pugi::xml_node &mat_node);
     bool ProcessTorrenceMaterial(pugi::xml_node &mat_node);
+    bool ProcessDiffuseMaterial(pugi::xml_node &mat_node);
+    bool ProcessGlossyMaterial(pugi::xml_node &mat_node);
     bool ProcessMesh(pugi::xml_node &mesh_node);
     bool ProcessPrim(pugi::xml_node &elem_node);
     bool ProcessLight(pugi::xml_node &light_node);

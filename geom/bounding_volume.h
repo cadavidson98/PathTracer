@@ -24,7 +24,7 @@ namespace cblt {
 
             struct BoundingNode {
                 BoundingBox bnds_;  //! bounding box which encapsulates the node
-                //int l_child_ = -1;  //! integer offset to left child node
+                int l_child_ = -1;  //! integer offset to left child node
                 int r_child_ = -1;  //! integer offset to right child node
                 std::vector<std::shared_ptr<T>> prims_;  //! integer offsets to all primitives in this node
             };

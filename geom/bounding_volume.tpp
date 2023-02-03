@@ -124,6 +124,7 @@ namespace cblt {
             tree_.push_back(r_child);
 
             tree_[node_offset].bnds_ = GetExtent(prim_start, prim_end);
+            tree_[node_offset].l_child_ = node_offset + 1;
             tree_[node_offset].r_child_ = node_offset + 2;
             return;
         }
@@ -135,6 +136,7 @@ namespace cblt {
             tree_.push_back(l_child);
 
             tree_[node_offset].bnds_ = GetExtent(prim_start, prim_end);
+            tree_[node_offset].l_child_ = node_offset + 1;
             return;
         }
         else if (std::distance(prim_start, prim_end) <= 0) {
@@ -147,6 +149,7 @@ namespace cblt {
         PrimIter prim_mid;
         if (!SplitSAH(prim_start, prim_end, prim_mid)) {
             // stop recursing, since the sub-child split would be worse than the current split
+            tree_[node_offset].l_child_ = -1;
             tree_[node_offset].r_child_ = -1;
             for (PrimIter iter = prim_start; iter != prim_end; iter++) {
                 tree_[node_offset].prims_.push_back(iter->elem_);
@@ -159,6 +162,7 @@ namespace cblt {
         BoundingNode new_node;
         tree_.push_back(new_node);
         int l_offset = node_offset + 1;
+        tree_[node_offset].l_child_ = l_offset;
         BuildRecurse(l_offset, prim_start, prim_mid);
 
         // create right child
@@ -357,7 +361,7 @@ namespace cblt {
                 {
                     nodes[++stack_idx] = cur_node.r_child_;
                 }
-                nodes[++stack_idx] = cur_node_idx + 1;
+                nodes[++stack_idx] = cur_node.l_child_;
             }
         }
         return result;
