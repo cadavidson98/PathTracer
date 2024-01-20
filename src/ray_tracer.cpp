@@ -97,6 +97,7 @@ std::shared_ptr<Image> RayTracer::Render()
                     int x = pixel_x + cur_tile.start_x;
                     int y = pixel_y + cur_tile.start_y;
                     Color tot_clr(0, 0, 0);
+                    generator->Seed(y * image_settings_.img_width + x);
                     for (int i = 1; i <= image_settings_.num_samples; i++)
                     {
                         float jitter_x, jitter_y;

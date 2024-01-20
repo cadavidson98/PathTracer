@@ -20,4 +20,9 @@ namespace cblt
         x = distribution_(generator_);
         y = distribution_(generator_);
     }
+
+    void RandomSampler::Seed(uint32_t seed)
+    {
+        generator_.seed(seed);
+    }
 }

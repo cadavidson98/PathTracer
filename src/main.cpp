@@ -85,15 +85,6 @@ int main(int argc, char* argv[])
     int seconds = static_cast<int>(mil.count() / 1000 - 60 * minutes);
     int milliseconds = static_cast<int>(mil.count() - 60000 * minutes - 1000 * seconds); 
     std::cout << "\nRender Time " << minutes << ":" << seconds << "." << milliseconds << "\n"; 
-    /*std::cout << "Change output file name (y/n)? ";
-    char new_file_name;
-    std::cin >> new_file_name;
-    if (new_file_name == 'y' || new_file_name == 'Y')
-    {
-        std::cout << "Enter new file name: ";
-        std::cin >> out_name;
-        out_name = std::string(DEBUG_DIR) + '/' + out_name; 
-    }*/
     img->write(out_name.c_str());
     std::cout << "Wrote result to " << out_name << std::endl;
     return 0;
