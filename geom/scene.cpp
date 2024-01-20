@@ -56,8 +56,10 @@ namespace cblt
         std::shared_ptr<Light> &selected_light = l_prims_[light_idx];
 
         Color radiance = Color::GreyScale(0.f);
-
-        radiance = radiance + DirectLight(outgoing, selected_light, collision_pt, sampler) * l_prims_.size();
+        if (selected_light.get() != (Light*)collision_pt.emission)
+        {
+            radiance = radiance + DirectLight(outgoing, selected_light, collision_pt, sampler) * l_prims_.size();
+        }
 
         return radiance;
     }
@@ -75,10 +77,11 @@ namespace cblt
         HitInfo occluder_info;
         occluder_info.hit_time = inf_F;
         
-        Ray shadow_ray(collision_pt.pos + to_light * eps_zero_F, to_light);
+        Ray shadow_ray(collision_pt.pos + to_light * .001f, to_light);
         bool hit = ClosestIntersection(shadow_ray, occluder_info);
-        if (light_rad.Luminance() <= eps_zero_F || (hit && (light_len - occluder_info.hit_time) > eps_zero_F))
+        if (light_rad.Luminance() <= eps_zero_F || (hit && (Light*)(occluder_info.emission) != light.get()))
         {
+            // hit an object that wasn't this light => was occluded
             radiance = Color::GreyScale(0.f);
         }
         else
@@ -121,11 +124,13 @@ namespace cblt
             Ray brdf_ray(collision_pt.pos + brdf_dir * eps_zero_F, brdf_dir);
             HitInfo light_info;
             occluder_info.hit_time = inf_F;
-
+            
             bool hit_scene = ClosestIntersection(brdf_ray, occluder_info);
             bool hit_light = area_light_geom->Intersect(brdf_ray, light_info);
-            light_rad = light->Radiance(light_info.pos, collision_pt.pos, collision_pt.norm, light_pdf);
-            if (!hit_light || light_pdf == 0.f || (light_info.hit_time - occluder_info.hit_time) > eps_zero_F)
+            
+            Vec3 to_light = light_info.pos - collision_pt.pos;
+            light_rad = light->Radiance(to_light, collision_pt.pos, collision_pt.norm, light_pdf);
+            if (!hit_light || light_pdf == 0.f || (Light*)(occluder_info.emission) != light.get())
             {
                 // didn't hit the light source
                 return radiance;

@@ -2,6 +2,7 @@
 #define CBLT_AREA_LIGHT
 
 #include "light.h"
+#include "mat/lambertian.h"
 #include "geom/geometry.h"
 
 namespace cblt
@@ -15,11 +16,13 @@ namespace cblt
         // intersect during path tracing, so we must inherit from geometry
         bool Intersect(const Ray &ray, HitInfo &collision_pt) override;
         BoundingBox GetBounds() override;
-
+        Color Emission();
         Color Sample(Vec3 &to_light, const Vec3 &surf_pos, const Vec3 &surf_norm, float &dist, float &pdf, std::shared_ptr<Sampler> &sampler) override;
-        Color Radiance(const Vec3 &light_pos, const Vec3 &surf_pos, const Vec3 &surf_norm, float &pdf) override;
+        Color Radiance(const Vec3 &to_light, const Vec3 &surf_pos, const Vec3 &surf_norm, float &pdf) override;
         private:
-        
+        // area light material (black)
+        std::shared_ptr<LambertianMaterial> light_material_;
+
         // area light radiance info
         Color color_;
         float length_;
@@ -32,7 +35,6 @@ namespace cblt
         Vec3 dir_X_;
         Vec3 dir_Y_;
         Vec3 dir_Z_;
-        
     };
 }
 

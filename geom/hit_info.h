@@ -12,12 +12,13 @@ namespace cblt
 
     class Material;
     class ScenePrim;
+    class AreaLight;
 
     class HitInfo final
     {
         public:
         HitInfo();
-        Color Emittance();
+        Color Emittance(const Vec3 &to_light);
 
         Vec3 norm;
         Vec3 pos;
@@ -25,8 +26,9 @@ namespace cblt
         float hit_time;
         Mat4 shading_basis;
         float medium_ior;  // IOR for the medium which the ray was traveling through when it hit this surface
-
+        bool emissive;
         std::shared_ptr<Material> m = nullptr;
+        AreaLight *emission = nullptr;
         ScenePrim *geom = nullptr;
     };
 }

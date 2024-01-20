@@ -1,4 +1,6 @@
 #include "bounding_box.h"
+#include <smmintrin.h>
+#include <immintrin.h>
 
 namespace cblt {
     

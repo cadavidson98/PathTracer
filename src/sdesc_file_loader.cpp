@@ -17,6 +17,7 @@
 #include <iostream>
 #include <sstream>
 #include <memory>
+#include <exception>
 
 template<class T>
 void parseString(std::istream_iterator<T> iter, std::vector<T> &vals)
@@ -111,7 +112,7 @@ bool SDescFileLoader::ProcessCamera(pugi::xml_node &camera_node)
     std::array<pugi::xml_node, 3> cam_nodes = { pos, fwd, up };
     std::array<std::vector<float>, 3> cam_vecs;
     std::array<cblt::Vec3, 3> cam_vals;
-    
+    std::array<std::string, 3> nodes{ "position", "forward", "up" };
     for(int i = 0; i < cam_nodes.size(); ++i)
     {
         const pugi::char_t * text = cam_nodes[i].first_child().value();
@@ -122,7 +123,7 @@ bool SDescFileLoader::ProcessCamera(pugi::xml_node &camera_node)
     
         if (cam_vecs[i].size() < 3)
         {
-            return false;
+            throw std::runtime_error("SDesc Format Error:\n\tin <camera>\n\t\t" + nodes[i] + ": missing element");
         }
 
         cam_vals[i].x = cam_vecs[i][0];
@@ -440,7 +441,8 @@ bool SDescFileLoader::ProcessAreaLight(pugi::xml_node &light_node)
                light_w_d(dir_z[0], dir_z[1], dir_z[2]);
 
     std::shared_ptr<cblt::Light> light = std::make_shared<cblt::AreaLight>(light_pos, light_l_d, light_dir, light_w_d, light_clr, power, length, width);
-    
+    std::shared_ptr<cblt::Geometry> light_model = std::dynamic_pointer_cast<cblt::Geometry>(light);
+    mesh_map_[std::string(light_node.attribute("ID").as_string())] = light_model;
     lights_.push_back(light);
     return true;
 }

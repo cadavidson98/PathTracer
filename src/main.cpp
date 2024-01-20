@@ -104,6 +104,7 @@ bool loadConfiguration(std::string &file_path, RenderSettings &settings)
     std::ifstream fin(file_path);
     if (!fin.good())
     {
+        std::cerr << "Can't open file: " << file_path;
         return false;
     }
 

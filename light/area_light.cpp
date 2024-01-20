@@ -11,6 +11,7 @@ namespace cblt
     {
         area_ = length_ * width_;
         power_ = energy / (PI_f * area_);
+        light_material_ = std::make_shared<LambertianMaterial>(Color(1.f, 1.f, 1.f));
     }
 
     Color AreaLight::Sample(Vec3 &to_light, const Vec3 &surf_pos, const Vec3 &surf_norm, float &dist, float &pdf, std::shared_ptr<Sampler> &sampler)
@@ -50,29 +51,24 @@ namespace cblt
   	    }
 	
   	    Vec3 hit_pos = ray.pos + ray.dir * hit_t;
-        // use same-sided test to check that our point is in the quad
-        Vec3 edge1 = dir_X_ * length_;
-        Vec3 edge2 = dir_Z_ * width_;
-        Vec3 edge3 = -edge1;
-        Vec3 edge4 = -edge2;
-
-        Vec3 A = hit_pos - pos_ + (edge3 + edge4) * .5f;
-        Vec3 B = hit_pos - pos_ + (edge1 + edge4) * .5f;
-        Vec3 C = hit_pos - pos_ + (edge1 + edge2) * .5f;
-        Vec3 D = hit_pos - pos_ + (edge3 + edge2) * .5f;
-        
-        bool in = Dot(A, edge1) >= 0.f &&
-                  Dot(B, edge2) >= 0.f &&
-                  Dot(C, edge3) >= 0.f &&
-                  Dot(D, edge4) >= 0.f;
-
-        if (in)
+        // use vector projection to check that our point
+        // is in the quad
+        Vec3 bot_left = pos_ - (dir_X_ * length_ + dir_Z_ * width_) * .5f;
+        Vec3 to_hit_pos = hit_pos - bot_left;
+        float proj_X = Dot(to_hit_pos, dir_X_);
+        float proj_Z = Dot(to_hit_pos, dir_Z_);
+        if (proj_X >= eps_zero_F && (proj_X - length_) <= eps_zero_F &&
+            proj_Z >= eps_zero_F && (proj_Z - width_) <= eps_zero_F)
         {
             collision_pt.hit_time = hit_t;
             collision_pt.norm = dir_Y_;
             collision_pt.pos = hit_pos;
+            collision_pt.emissive = true;
+            collision_pt.emission = this;
+            collision_pt.m = light_material_;
+            return true;
         }
-        return in;
+        return false;
     }
 
     BoundingBox AreaLight::GetBounds()
@@ -82,15 +78,20 @@ namespace cblt
         return BoundingBox(min_pt, max_pt);
     }
 
-    Color AreaLight::Radiance(const Vec3 &light_pos, const Vec3 &surf_pos, const Vec3 &surf_norm, float &pdf)
+    Color AreaLight::Emission()
+    {
+        return color_ * power_;
+    }
+
+    Color AreaLight::Radiance(const Vec3 &to_light, const Vec3 &surf_pos, const Vec3 &surf_norm, float &pdf)
     {
         // Area lighting Integral from Sebastian Legarde "Moving Frostbite to PBR 3.0"
         // We need to account for the distance attenuation when directly sampling the area light
-        Vec3 to_light = light_pos - surf_pos;
+        // Vec3 to_light = light_pos - surf_pos;
         float length_sqr = MagnitudeSqr(to_light);
         // Normalize
-        to_light = to_light / std::sqrt(length_sqr);
+        Vec3 to_light_norm = to_light / std::sqrt(length_sqr);
         pdf = 1.f / area_;
-        return color_ * power_ * std::max(0.f, -Dot(to_light, dir_Y_)) / length_sqr;
+        return color_ * power_ * AbsDot(to_light_norm, dir_Y_) / length_sqr;
     }
 }

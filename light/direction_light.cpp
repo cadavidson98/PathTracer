@@ -40,7 +40,7 @@ namespace cblt
         return color_ * power_;
     }
 
-    Color DirectionLight::Radiance(const Vec3 &light_pos, const Vec3 &surf_pos, const Vec3 &surf_norm, float &pdf)
+    Color DirectionLight::Radiance(const Vec3 &to_light, const Vec3 &surf_pos, const Vec3 &surf_norm, float &pdf)
     {
         if (spread_ > eps_zero_F)
         {

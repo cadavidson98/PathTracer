@@ -6,11 +6,13 @@
 
 #include <array>
 #include <algorithm>
-#include <stack>
-namespace cblt {
+
+namespace cblt
+{
     template <class T>
-    BoundingVolume<T>::BoundingVolume() {
-        max_prims_in_leaf_ = 255;
+    BoundingVolume<T>::BoundingVolume() 
+    {
+        max_prims_in_leaf_ = 16;
         BoundingNode root;
         tree_.push_back(root);
     }
@@ -23,7 +25,8 @@ namespace cblt {
         std::vector<PrimInfo> prims_info;
         prims_info.reserve(prims.size());
 
-        for (const std::shared_ptr<T> & prim : prims) {
+        for (const std::shared_ptr<T> & prim : prims)
+        {
             prims_info.emplace_back(prim->GetBounds(), prim);
         }
         BoundingNode root;
@@ -34,12 +37,13 @@ namespace cblt {
     template <class T>
     BoundingVolume<T>::BoundingVolume(std::vector<std::shared_ptr<T>> &prims, std::function<BoundingBox(T)> bounds_calc)
     {
-        max_prims_in_leaf_ = 4;
+        max_prims_in_leaf_ = 16;
         // get the bounds of the primitives, and store them in primitive info structures
         std::vector<PrimInfo> prims_info;
         prims_info.reserve(prims.size());
 
-        for (const std::shared_ptr<T> & prim : prims) {
+        for (const std::shared_ptr<T> & prim : prims)
+        {
             prims_info.emplace_back(bounds_calc(*prim), prim);
         }
 
@@ -57,12 +61,14 @@ namespace cblt {
      * @return true/false If the ray has collided with a triangle
      */
     template<class T>
-    bool BoundingVolume<T>::Intersect(const Ray& ray, HitInfo &collison_pt) {
+    bool BoundingVolume<T>::Intersect(const Ray& ray, HitInfo &collison_pt)
+    {
         return IntersectIterative(ray, collison_pt);
     }
 
     template<class T>
-    BoundingBox BoundingVolume<T>::GetBounds() const {
+    BoundingBox BoundingVolume<T>::GetBounds() const
+    {
         return tree_[0].bnds_;
     }
 
@@ -71,9 +77,11 @@ namespace cblt {
      * prims
      */
     template <class T>
-    BoundingBox BoundingVolume<T>::GetExtent(PrimIter prim_start, PrimIter prim_end) {
+    BoundingBox BoundingVolume<T>::GetExtent(PrimIter prim_start, PrimIter prim_end)
+    {
         BoundingBox extent;
-        for (PrimIter iter = prim_start; iter != prim_end; ++iter) {
+        for (PrimIter iter = prim_start; iter != prim_end; ++iter)
+        {
             PrimInfo prim = *iter;
             extent.max_.x = std::max(extent.max_.x, prim.bnds_.max_.x);
             extent.max_.y = std::max(extent.max_.y, prim.bnds_.max_.y);
@@ -91,7 +99,8 @@ namespace cblt {
     BoundingBox BoundingVolume<T>::GetExtent(const std::vector<Vec3> &centroids)
     {
         BoundingBox extent;
-        for (const Vec3 &cen : centroids) {
+        for (const Vec3 &cen : centroids)
+        {
 
             extent.max_.x = std::max(extent.max_.x, cen.x);
             extent.max_.y = std::max(extent.max_.y, cen.y);
@@ -111,47 +120,30 @@ namespace cblt {
      */
     template<class T>
     void BoundingVolume<T>::BuildRecurse(int node_offset, PrimIter prim_start, PrimIter prim_end) {
-        if (std::distance(prim_start, prim_end) == 2) {
-            BoundingNode l_child, r_child;
-            l_child.bnds_ = prim_start->bnds_;
-            l_child.prims_.push_back(prim_start->elem_);
-
-            PrimInfo next_prim = *(std::next(prim_start, 1));
-            r_child.bnds_ = next_prim.bnds_;
-            r_child.prims_.push_back(next_prim.elem_);
-
-            tree_.push_back(l_child);
-            tree_.push_back(r_child);
-
+        if (std::distance(prim_start, prim_end) <= max_prims_in_leaf_)
+        {
+            // stop recursing and make this node a leaf
+            tree_[node_offset].l_child_ = -1;
+            tree_[node_offset].r_child_ = -1;
             tree_[node_offset].bnds_ = GetExtent(prim_start, prim_end);
-            tree_[node_offset].l_child_ = node_offset + 1;
-            tree_[node_offset].r_child_ = node_offset + 2;
-            return;
+            
+            for (PrimIter iter = prim_start; iter != prim_end; iter++)
+            {
+                tree_[node_offset].prims_.push_back(iter->elem_);
+            }
         }
-        else if (std::distance(prim_start, prim_end) == 1) {
-            BoundingNode l_child;
-            l_child.bnds_ = prim_start->bnds_;
-            l_child.prims_.push_back(prim_start->elem_);
 
-            tree_.push_back(l_child);
-
-            tree_[node_offset].bnds_ = GetExtent(prim_start, prim_end);
-            tree_[node_offset].l_child_ = node_offset + 1;
-            return;
-        }
-        else if (std::distance(prim_start, prim_end) <= 0) {
-            // Super Badness occurred
-            return;
-        }
         tree_[node_offset].bnds_ = GetExtent(prim_start, prim_end);
 
         // iterator to the beginning of the primitives in the second bin
         PrimIter prim_mid;
-        if (!SplitSAH(prim_start, prim_end, prim_mid)) {
+        if (!SplitSAH(prim_start, prim_end, prim_mid))
+        {
             // stop recursing, since the sub-child split would be worse than the current split
             tree_[node_offset].l_child_ = -1;
             tree_[node_offset].r_child_ = -1;
-            for (PrimIter iter = prim_start; iter != prim_end; iter++) {
+            for (PrimIter iter = prim_start; iter != prim_end; iter++)
+            {
                 tree_[node_offset].prims_.push_back(iter->elem_);
             }
             return;
@@ -180,7 +172,8 @@ namespace cblt {
         std::vector<Vec3> centroid_pts;
         centroid_pts.reserve(prim_size);
 
-        for(PrimIter iter = prim_start; iter != prim_end; ++iter) {
+        for(PrimIter iter = prim_start; iter != prim_end; ++iter)
+        {
             centroid_pts.push_back(iter->bnds_.cen_);
         }
 
@@ -192,12 +185,15 @@ namespace cblt {
         int axis = 0;
         // parition along semi-major axis, but using centroids to mitigate
         // large triangle issues...
-        for(int i = 1; i < 3; ++i) {
-            if (ranges[i] > ranges[axis]) {
+        for(int i = 1; i < 3; ++i)
+        {
+            if (ranges[i] > ranges[axis])
+            {
                 axis = i;
             }
         }
-        if(ranges[axis] < eps_zero_F) {
+        if(ranges[axis] < eps_zero_F)
+        {
             // the range on the largest axis is still too narrow in get a good split...
             return false;
         }
@@ -209,7 +205,8 @@ namespace cblt {
         float range = ranges[axis];      
         float centroid_max = (axis == 0) ? centroid_bnds.max_.x : (axis == 1) ? centroid_bnds.max_.y : centroid_bnds.max_.z;
         float centroid_min = (axis == 0) ? centroid_bnds.min_.x : (axis == 1) ? centroid_bnds.min_.y : centroid_bnds.min_.z;
-        for (PrimIter iter = prim_start; iter != prim_end; ++iter) {
+        for (PrimIter iter = prim_start; iter != prim_end; ++iter)
+        {
             // find out what bin this triangle belongs in
             // this can be done by manually finding the threshhold value
             // or just normalizing its value
@@ -220,23 +217,27 @@ namespace cblt {
         }
 
         // get the size of each bin
-        for(Bucket &bin : bins) {
+        for(Bucket &bin : bins)
+        {
                 bin.bnds_ = GetExtent(bin.prims_.begin(), bin.prims_.end());
         }
         constexpr int buckets_minus_1 = num_bins - 1;
         std::array<float, buckets_minus_1> costs;
         // now get all the possible SAH values
-        for(int i = 0; i < buckets_minus_1; ++i) {
+        for(int i = 0; i < buckets_minus_1; ++i)
+        {
             int j = 0;
             BoundingBox bound1, bound2;
             int num_prims1(0), num_prims2(0);
             // this is one half split
-            for(; j <= i; ++j) {
+            for(; j <= i; ++j)
+            {
                 bound1 = bound1.Union(bins[j].bnds_);
                 num_prims1 += static_cast<int>(bins[j].prims_.size());
             }
             // this is the other half split
-            for(; j < num_bins; ++j) {
+            for(; j < num_bins; ++j)
+            {
                 bound2 = bound2.Union(bins[j].bnds_);
                 num_prims2 += static_cast<int>(bins[j].prims_.size());
             }
@@ -246,31 +247,39 @@ namespace cblt {
         // now that we have all the costs, we can find the best split
         float min_cost = costs[0];
         int min_split = 0;
-        for (int i = 1; i < buckets_minus_1; ++i) {
-            if (costs[i] < min_cost) {
+        for (int i = 1; i < buckets_minus_1; ++i)
+        {
+            if (costs[i] < min_cost)
+            {
                 min_split = i;
             }
         }
         // Finally, determine whether or not we need to create a leaf node
         float parent_cost = .125f + prim_size;
-        if(min_cost < parent_cost || prim_size > max_prims_in_leaf_) {
-        // we need to subdivide
-        prim_split = std::partition(prim_start, prim_end, [=](const PrimInfo & prim) {
-            float centroid_pos = (axis == 0) ? prim.bnds_.cen_.x : (axis == 1) ? prim.bnds_.cen_.y : prim.bnds_.cen_.z;
-            float normalized_position = (centroid_pos - centroid_min) / range;
-            int bucket_index = std::min(static_cast<int>(num_bins * normalized_position), num_bins - 1);
-            return bucket_index <= min_split;
-        });
-        // we can continue to subdivide;
-        return true;
-        } else {
+        if(min_cost < parent_cost || prim_size > max_prims_in_leaf_)
+        {
+            // we need to subdivide
+            prim_split = std::partition(prim_start, prim_end, 
+            [=](const PrimInfo & prim)
+            {
+                float centroid_pos = (axis == 0) ? prim.bnds_.cen_.x : (axis == 1) ? prim.bnds_.cen_.y : prim.bnds_.cen_.z;
+                float normalized_position = (centroid_pos - centroid_min) / range;
+                int bucket_index = std::min(static_cast<int>(num_bins * normalized_position), num_bins - 1);
+                return bucket_index <= min_split;
+            });
+            // we can continue to subdivide;
+            return true;
+        }
+        else
+        {
             // this needs to become a leaf node
             return false;
         }
     }   
 
     template<class T>
-    bool BoundingVolume<T>::SplitMidpoint(PrimIter prim_start, PrimIter prim_end, PrimIter &prim_split) {
+    bool BoundingVolume<T>::SplitMidpoint(PrimIter prim_start, PrimIter prim_end, PrimIter &prim_split)
+    {
         BoundingBox bnds = GetExtent(prim_start, prim_end); 
         std::array<float, 3> arr;
         arr[0] = std::abs(bnds.max_.x - bnds.min_.x);
@@ -278,30 +287,41 @@ namespace cblt {
         arr[2] = std::abs(bnds.max_.z - bnds.min_.z);
         int index = 0;
         float max = arr[0];
-        for(int i = 1; i < 3; ++i) {
-            if(arr[i] > max) {
+        for(int i = 1; i < 3; ++i)
+        {
+            if(arr[i] > max)
+            {
                 index = i;
                 max = arr[i];
             }
         }
         // now split
-        if(index == 0) {
+        if(index == 0)
+        {
             // split on x
-            std::sort(prim_start, prim_end, [](const PrimInfo& prim_1, const PrimInfo &prim_2) {
-            return prim_1.bnds_.cen_.x < prim_2.bnds_.cen_.x;
-            });
+            std::sort(prim_start, prim_end, []
+                (const PrimInfo& prim_1, const PrimInfo &prim_2)
+                {
+                    return prim_1.bnds_.cen_.x < prim_2.bnds_.cen_.x;
+                });
         }
-        else if (index == 1) {
+        else if (index == 1)
+        {
             // split on y
-            std::sort(prim_start, prim_end, [](const PrimInfo& prim_1, const PrimInfo &prim_2) {
-            return prim_1.bnds_.cen_.y < prim_2.bnds_.cen_.y;
-            });
+            std::sort(prim_start, prim_end, []
+                (const PrimInfo& prim_1, const PrimInfo &prim_2)
+                {
+                    return prim_1.bnds_.cen_.y < prim_2.bnds_.cen_.y;
+                });
         }
-        else {
+        else
+        {
             // split on z
-            std::sort(prim_start, prim_end, [](const PrimInfo& prim_1, const PrimInfo &prim_2) {
-            return prim_1.bnds_.cen_.z < prim_2.bnds_.cen_.z;
-            });
+            std::sort(prim_start, prim_end, []
+                (const PrimInfo& prim_1, const PrimInfo &prim_2)
+                {
+                    return prim_1.bnds_.cen_.z < prim_2.bnds_.cen_.z;
+                });
         }
 
         // now give half the leaves to each child
@@ -351,7 +371,7 @@ namespace cblt {
                     {
                         // this is a closer item than the previous one
                         hit = prim_hit;
-                        best_time = hit.hit_time;
+                        best_time = prim_hit.hit_time;
                     }
                 }
             }

@@ -149,6 +149,18 @@ Color RayTracer::PathTraceIterative(cblt::Ray cam_ray, std::shared_ptr<cblt::Sam
         scene_pt.hit_time = cblt::inf_F;
         bool hit = SceneIntersect(path_ray, scene_pt);
         
+        /*if (depth == 0)
+        {
+            if (hit)
+            {
+                tot_light = tot_light + throughput * scene_pt.Emittance(path_ray.dir);
+            }
+            else
+            {
+                // TODO: figure out better way of handling direct lighting when an area light ISN'T HIT
+            }
+        }*/
+
         if (!hit) 
         {
             break;
@@ -156,7 +168,7 @@ Color RayTracer::PathTraceIterative(cblt::Ray cam_ray, std::shared_ptr<cblt::Sam
 
         // compute direct lighting contribution
         tot_light = tot_light + throughput * image_scene_->SampleSingleLight(-path_ray.dir, scene_pt, generator);
-        
+
         // sample BRDF at point to determine how light is transmitted to the next point on the path
         cblt::Vec3 incoming;
         float pdf;

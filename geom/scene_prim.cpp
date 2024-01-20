@@ -15,8 +15,13 @@ namespace cblt
         BoundingBox local_bnds = model_->GetBounds();
         Vec4 world_min = local_to_world_ * Vec4(local_bnds.min_, 1.0f);
         Vec4 world_max = local_to_world_ * Vec4(local_bnds.max_, 1.0f);
-        local_bnds.min_ = Vec3(world_min.x, world_min.y, world_min.z);
-        local_bnds.max_ = Vec3(world_max.x, world_max.y, world_max.z);
+
+        std::pair<float, float> x_rng = std::minmax({ world_min.x, world_max.x });
+        std::pair<float, float> y_rng = std::minmax({ world_min.y, world_max.y });
+        std::pair<float, float> z_rng = std::minmax({ world_min.z, world_max.z });
+
+        local_bnds.min_ = Vec3(x_rng.first, y_rng.first, z_rng.first);
+        local_bnds.max_ = Vec3(x_rng.second, y_rng.second, z_rng.second);
         local_bnds.CalculateCenter();
         return local_bnds;
     }
@@ -52,6 +57,8 @@ namespace cblt
             collision_pt.shading_basis = local_hit.shading_basis * world_to_local_;
             collision_pt.hit_time = Magnitude(ray.pos - collision_pt.pos);
             collision_pt.m = local_hit.m;
+            collision_pt.emission = local_hit.emission;
+            collision_pt.emissive = local_hit.emissive;
 
             // make orthonormal basis for shading
             Vec3 tan, bitan;
